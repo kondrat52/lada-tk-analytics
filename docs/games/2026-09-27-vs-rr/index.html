@@ -72,7 +72,11 @@ td.gs, th.gs { border-left: 1px solid var(--rule); }
 .tl { overflow-x: auto; background: var(--board); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 6px 6px; }
 svg text { fill: var(--ink); font-family: var(--data); }
 svg .mut { fill: var(--muted); }
+svg .tnum { fill: var(--team); }
 .bar { fill: var(--team); cursor: pointer; }
+svg .stop { fill: var(--stop); }
+svg .grid { stroke: var(--rule); stroke-width: 1; }
+svg .pbox { stroke: var(--rule); fill: none; }
 .bar:hover, .bar.hi { fill: var(--blueline); }
 .dim .bar:not(.hi) { opacity: .28; }
 .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--ice); font: 500 14px/1.3 var(--data); padding: 6px 9px; border-radius: 3px; z-index: 5; }
@@ -301,19 +305,19 @@ P.forEach((p, i) => {
   g += `<text x="${x}" y="14" font-size="13" font-weight="600">${p.label}</text>`;
   for (let m = 5; m * 60 < p.end - p.start; m += 5) {
     const xx = x + m * 60 * scale;
-    g += `<line x1="${xx}" x2="${xx}" y1="${TOP - 6}" y2="${H - 6}" stroke="var(--rule)" stroke-width="1"/>`;
+    g += `<line class="grid" x1="${xx}" x2="${xx}" y1="${TOP - 6}" y2="${H - 6}"/>`;
     g += `<text class="mut" x="${xx}" y="${TOP - 10}" font-size="11" text-anchor="middle">${m}:00</text>`;
   }
-  g += `<rect x="${x}" y="${TOP - 4}" width="${w}" height="${H - TOP - 2}" fill="none" stroke="var(--rule)"/>`;
+  g += `<rect class="pbox" x="${x}" y="${TOP - 4}" width="${w}" height="${H - TOP - 2}"/>`;
 });
 (DATA.stoppages || []).forEach(([a, b]) => {
   const pi = P.findIndex(p => a >= p.start && a < p.end); if (pi < 0) return;
   const per = P[pi], x = x0s[pi] + (a - per.start) * scale, w = (Math.min(b, per.end) - a) * scale;
-  g += `<rect x="${x.toFixed(1)}" y="${TOP - 4}" width="${Math.max(1, w).toFixed(1)}" height="${H - TOP - 2}" fill="var(--stop)"/>`;
+  g += `<rect x="${x.toFixed(1)}" y="${TOP - 4}" width="${Math.max(1, w).toFixed(1)}" height="${H - TOP - 2}" class="stop"/>`;
 });
 order.forEach((p, r) => {
   const y = TOP + r * LANE;
-  g += `<text x="6" y="${y + 15}" font-size="14"><tspan font-weight="600" fill="var(--team)">${p.num}</tspan> ${p.name || ""}</text>`;
+  g += `<text x="6" y="${y + 15}" font-size="14"><tspan font-weight="600" class="tnum">${p.num}</tspan> ${p.name || ""}</text>`;
 });
 DATA.shifts.forEach(s => {
   const r = order.findIndex(p => p.num === s.player), pi = P.findIndex(p => p.label === s.period);
