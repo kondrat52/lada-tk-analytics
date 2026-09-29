@@ -2,6 +2,8 @@
 work/
 *.webm
 *.mp4
+# ...except the published highlight clips
+!docs/games/*/clips/*.mp4
 *.pt
 __pycache__/
 .DS_Store

@@ -4,6 +4,9 @@
   run_game.py skaters W T0 T1               our skaters detected on the ice per 5 s (find penalty kills)
   run_game.py prepare W                      per period: tracking, review sheets, roster card
   run_game.py solve   W                      per period: apply reviews + solve; gantt charts; stats table
+  run_game.py goals   W                      candidate goals: center-ice faceoffs + long stoppages (verify by eye)
+  run_game.py frames  W OUT.jpg X0 X1 Y0 Y1 TILE_W COLS t1 t2 ...   4K frames (cropped) as a sheet, for verifying
+  run_game.py clip    W GAME_ID NAME T0 T1 POSTER_T [FOCUS_X]        zoomed highlight clip into docs/games/<id>/clips
   run_game.py publish W GAME_ID --opponent RR --eyebrow "Sun Sep 27, 2026 · 7:50 PM · Renton" [--date ...]
 
 W is the per-game work folder (outside the repo). Every step skips work that is already done, so re-running
@@ -38,6 +41,11 @@ def download(url, W):
         return vid
     sh(PY, "-m", "yt_dlp", "-q", "--no-progress", "-f", "313/bestvideo[height=2160]", "-o", vid, url)
     return vid
+
+
+def download_audio(url, W):
+    if not os.path.exists(f"{W}/audio.m4a"):
+        sh(PY, "-m", "yt_dlp", "-q", "--no-progress", "-f", "140/bestaudio[ext=m4a]", "-o", f"{W}/audio.m4a", url)
 
 
 def calibrate(vid, W):
@@ -173,6 +181,7 @@ def propose_periods(W):
 def cmd_fetch(a):
     W = os.path.abspath(a.W); os.makedirs(f"{W}/full", exist_ok=True)
     vid = download(a.url, W)
+    download_audio(a.url, W)
     calibrate(vid, W)
     detect(vid, W, a.limit)
     ocr(W)
@@ -201,6 +210,94 @@ def cmd_skaters(a):
     c = t.groupby([(t.t // 5).astype(int) * 5, "frame"]).size().groupby(level=0).quantile(0.75)
     print("our skaters on the ice (75th pct per 5 s; includes the goalie before prepare):")
     print(" ".join(f"{int(k) // 60}:{int(k) % 60:02d}={v:.0f}" for k, v in c.items()))
+
+
+def _skater_speed(W):
+    """Median speed of our tracked skaters per second, in body-heights/s (low = stoppage)."""
+    tr = pd.concat([pd.read_csv(f"{W}/{P['label'].lower()}/tracks_v1.csv") for P in periods(W)])
+    tr = tr[tr.rel > 5].sort_values(["tid", "frame"])
+    tr["v"] = np.hypot(tr.groupby("tid").fx.diff(), tr.groupby("tid").fy.diff()) / tr.h * FPS
+    tr.loc[tr.groupby("tid").frame.diff() != 1, "v"] = np.nan
+    T = int(tr.t.max()) + 1
+    return tr.groupby(tr.t.astype(int)).v.median().reindex(range(T)).rolling(5, center=True, min_periods=1).median()
+
+
+def cmd_goals(a):
+    """After every goal the restart is a center-ice faceoff. List center-ice formations that aren't period
+    starts, and every long stoppage with where play restarted. Each needs checking by eye (frames command)."""
+    from track import load
+    W = os.path.abspath(a.W)
+    d = load(f"{W}/full/dets.csv"); d = d[(d.fy > d.board + 5) & (d.conf >= 0.3)]
+    g = d.groupby("frame").agg(t=("t", "first"), n=("fx", "size"), mx=("fx", "median"),
+                               q2=("fx", lambda s: s.quantile(.2)), q8=("fx", lambda s: s.quantile(.8)))
+    s = g.assign(sx=g.q8 - g.q2).groupby(g.t.astype(int)).agg(n=("n", "median"), mx=("mx", "median"), sx=("sx", "median"))
+    center = 1880
+    sp = _skater_speed(W)
+    Ps = periods(W)
+    starts = [P["start"] for P in Ps]
+    def label(t):
+        P = next((P for P in Ps if P["start"] <= t <= P["end"]), None)
+        return P["label"] if P else "break"
+    print("Long stoppages (our skaters nearly still for 18+ s) and where play restarted:")
+    slow = (sp < 0.55) | sp.isna()
+    st = None
+    for t in range(len(sp)):
+        if slow.iloc[t]:
+            st = t if st is None else st
+            continue
+        if st is not None and t - st >= 18 and label(st) != "break":
+            w = s.loc[t - 6:t + 1]
+            rx = w.mx.median()
+            where = "CENTER ice" if abs(rx - center) < 250 else ("left end" if rx < 1500 else "right end")
+            near_start = any(abs(st - x) < 45 for x in starts)
+            hint = "  <- goal? (center restart)" if where == "CENTER ice" and not near_start else ""
+            # where was play just before it stopped?
+            before = d[(d.t >= st - 6) & (d.t < st)].fx.median()
+            side = "left net" if before < 1300 else ("right net" if before > 2500 else "mid-ice")
+            print(f"  {st // 60}:{st % 60:02d}-{t // 60}:{t % 60:02d} {label(st)}: play stopped near {side}, "
+                  f"restart at {where}{hint}")
+        st = None
+    print("Center-ice faceoff formations (11+ people lined up around center, still for 3+ s), not period starts:")
+    s["mv"] = s.mx.diff().abs().rolling(3, center=True).mean()
+    cand = (s.n >= 9) & ((s.mx - center).abs() < 220) & (s.sx < 1100) & (s.mv < 60)
+    st = None
+    for t in s.index:
+        if cand.get(t, False):
+            st = t if st is None else st
+            continue
+        if st is not None and t - st >= 3 and label(st) != "break" and not any(abs(st - x) < 45 for x in starts):
+            print(f"  {st // 60}:{st % 60:02d} {label(st)}  <- look at the 60 s before it")
+        st = None
+    print("Our net per period:", {P["label"]: ("left" if P["net"] < 1900 else "right") for P in Ps})
+    print("Verify each with frames (full rink every 3 s, then zoom on the net): a goal shows a crowd at a net, the "
+          "referee pointing at it, and one team celebrating before the center faceoff.")
+
+
+def cmd_frames(a):
+    import cv2, imageio_ffmpeg
+    FF = imageio_ffmpeg.get_ffmpeg_exe(); vid = f"{a.W}/video.webm"
+    x0, x1, y0, y1 = a.x0, a.x1, a.y0, a.y1
+    tiles = []
+    for t in a.times:
+        r = subprocess.run([FF, "-nostdin", "-loglevel", "error", "-ss", str(t), "-i", vid, "-frames:v", "1", "-vf",
+                            f"crop={x1 - x0}:{y1 - y0}:{x0}:{y0}", "-f", "rawvideo", "-pix_fmt", "bgr24", "-"],
+                           capture_output=True)
+        im = np.frombuffer(r.stdout, np.uint8).reshape(y1 - y0, x1 - x0, 3)
+        im = cv2.resize(im, (a.tile_w, int(a.tile_w * (y1 - y0) / (x1 - x0))), interpolation=cv2.INTER_AREA).copy()
+        cv2.putText(im, f"{int(t) // 60}:{int(t) % 60:02d}", (8, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 220), 3)
+        tiles.append(im)
+    blank = np.full_like(tiles[0], 255)
+    rows = [np.hstack(tiles[i:i + a.cols] + [blank] * (a.cols - len(tiles[i:i + a.cols]))) for i in range(0, len(tiles), a.cols)]
+    cv2.imwrite(a.out, np.vstack(rows), [cv2.IMWRITE_JPEG_QUALITY, 88])
+    print(a.out)
+
+
+def cmd_clip(a):
+    W = os.path.abspath(a.W)
+    out = f"{ROOT}/docs/games/{a.game_id}/clips/{a.name}.mp4"
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    cmd = [PY, f"{HERE}/clip.py", f"{W}/full", f"{W}/video.webm", f"{W}/audio.m4a", out, a.t0, a.t1, a.poster]
+    sh(*cmd + ([a.focus] if a.focus is not None else []))
 
 
 def cmd_prepare(a):
@@ -248,7 +345,7 @@ def cmd_publish(a):
         periods=[dict(label=P["label"], start=P["start"], end=P["end"]) for P in Ps],
         nets={P["label"]: P["net"] for P in Ps},
         penalty_kills=[dict(period=P["label"], **k) for P in Ps for k in P.get("pk", [])],
-        notes=[],
+        notes=[], video_ends_early=bool(a.video_ends_early),
         fun=dict(name_reads={str(k): int(v) for k, v in names.num.value_counts().items()}),
         pipeline=dict(detections=sum(1 for _ in open(f"{W}/full/dets.csv")),
                       crops=len(os.listdir(f"{W}/full/crops")), reads=int(len(reads)),
@@ -256,9 +353,11 @@ def cmd_publish(a):
     gj = f"{gd}/game.json"
     if os.path.exists(gj):  # keep hand-written fields (notes, title tweaks) from an earlier publish
         old = json.load(open(gj))
-        for k in ("notes", "title", "eyebrow"):
+        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early"):
             if old.get(k):
                 game[k] = old[k]
+    if os.path.exists(f"{W}/highlights.json"):  # [{type, team|player, t, clip, poster, note}] from the clips step
+        game["highlights"] = json.load(open(f"{W}/highlights.json"))
     json.dump(game, open(gj, "w"), indent=2, ensure_ascii=False)
     sh(PY, f"{HERE}/build_site.py")
     log(f"wrote {gd}; site rebuilt in docs/. Review, then commit and push to publish.")
@@ -270,12 +369,21 @@ if __name__ == "__main__":
     f = sub.add_parser("fetch"); f.add_argument("url"); f.add_argument("W"); f.add_argument("--limit", type=float)
     s = sub.add_parser("skaters"); s.add_argument("W"); s.add_argument("T0", type=float); s.add_argument("T1", type=float)
     sub.add_parser("prepare").add_argument("W")
+    sub.add_parser("goals").add_argument("W")
+    fr = sub.add_parser("frames"); fr.add_argument("W"); fr.add_argument("out")
+    for k in ("x0", "x1", "y0", "y1", "tile_w", "cols"):
+        fr.add_argument(k, type=int)
+    fr.add_argument("times", type=float, nargs="+")
+    c = sub.add_parser("clip"); c.add_argument("W"); c.add_argument("game_id"); c.add_argument("name")
+    c.add_argument("t0"); c.add_argument("t1"); c.add_argument("poster"); c.add_argument("focus", nargs="?")
     sub.add_parser("solve").add_argument("W")
     p = sub.add_parser("publish"); p.add_argument("W"); p.add_argument("game_id")
     p.add_argument("--opponent", required=True); p.add_argument("--eyebrow", required=True)
     p.add_argument("--date"); p.add_argument("--title"); p.add_argument("--video")
+    p.add_argument("--video-ends-early", action="store_true", help="recording stops before the final horn")
     a = ap.parse_args()
     if a.cmd == "fetch":
         os.makedirs(a.W, exist_ok=True)
         open(f"{a.W}/url.txt", "w").write(a.url)
-    {"fetch": cmd_fetch, "skaters": cmd_skaters, "prepare": cmd_prepare, "solve": cmd_solve, "publish": cmd_publish}[a.cmd](a)
+    {"fetch": cmd_fetch, "skaters": cmd_skaters, "prepare": cmd_prepare, "solve": cmd_solve, "goals": cmd_goals,
+     "frames": cmd_frames, "clip": cmd_clip, "publish": cmd_publish}[a.cmd](a)

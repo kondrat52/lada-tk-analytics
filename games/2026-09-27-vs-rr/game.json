@@ -62,5 +62,40 @@
     "crops": 124149,
     "reads": 15307,
     "reviewed": 633
-  }
+  },
+  "video_ends_early": true,
+  "highlights": [
+    {
+      "type": "goal",
+      "team": "against",
+      "t": 147,
+      "clip": "clips/goal-1.mp4",
+      "poster": "clips/goal-1.jpg",
+      "note": "Scramble at our net"
+    },
+    {
+      "type": "goal",
+      "team": "against",
+      "t": 3078,
+      "clip": "clips/goal-2.mp4",
+      "poster": "clips/goal-2.jpg",
+      "note": "Drive to the net"
+    },
+    {
+      "type": "penalty",
+      "t": 3582,
+      "player": 4,
+      "clip": "clips/penalty-4.mp4",
+      "poster": "clips/penalty-4.jpg",
+      "note": "Call in our left corner"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 3828,
+      "clip": "clips/goal-3.mp4",
+      "poster": "clips/goal-3.jpg",
+      "note": "Crash the net, then the celebration"
+    }
+  ]
 }

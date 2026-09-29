@@ -109,13 +109,48 @@ lasting more than ~20 s means a missed player, an unlisted penalty or a bad labe
 accepting it (`pipeline/sheet.py` makes contact sheets of any crops). The printed table is the result.
 Sanity check: each period's total ice time ≈ 5 × period length (minus a skater per penalty-kill second).
 
-## 7. Publish
+## 7. Highlights: goals and penalties
 
 ```sh
-$PY pipeline/run_game.py publish $W <YYYY-MM-DD>-vs-<opp> --opponent <OPP> --eyebrow "Sun Oct 4, 2026 · 7:50 PM · Renton"
+$PY pipeline/run_game.py goals $W
 ```
 
-This writes `games/<id>/game.json` + `shifts.csv` and rebuilds `docs/`. Add any notes to `game.json` (e.g. the
+This lists candidate goals: center-ice faceoffs that aren't period starts, and long stoppages that restart at
+center. A goal is always followed by a center faceoff. Check each candidate by eye:
+
+```sh
+# full rink every 3 s over the minute before the faceoff
+$PY pipeline/run_game.py frames $W $W/g.jpg 0 3840 700 1500 1000 2 <t-60> <t-57> ... <t>
+# zoom on a net, 1 s apart (left net x 150-1450, right net x 2500-3800)
+$PY pipeline/run_game.py frames $W $W/gz.jpg 150 1450 720 1070 660 3 <t1> <t2> ...
+```
+
+A real goal shows a scramble or shot at one net, the referee pointing at it, and one team celebrating before
+the players drift to center. Most candidates that don't show this are false alarms. `goals` prints which net is
+ours each period, so you can tell goals for from goals against. Tell the user the score you found and ask them
+to confirm it. For each penalty the user named, the call is the referee's raised arm just before the
+penalty-kill faceoff.
+
+Make a clip of about 22 s per event, ending a few seconds after the goal or call:
+
+```sh
+$PY pipeline/run_game.py clip $W <game-id> goal-1 <t-12> <t+10> <t>        # optional last arg: focus x
+```
+
+Add a focus x (about 500 = our left corner, 3300 = right) when players are spread out and the camera should stay
+on one end. Check a few frames of each clip (cv2 can read the mp4). Then write `$W/highlights.json`:
+`[{"type": "goal", "team": "for", "t": 3828, "clip": "clips/goal-3.mp4", "poster": "clips/goal-3.jpg", "note": "..."},
+{"type": "penalty", "player": 4, "t": 3582, "clip": "clips/penalty-4.mp4", "poster": "clips/penalty-4.jpg", "note": "..."}]`
+(t = seconds of video at the goal or call). The page shows who was on the ice for each goal.
+
+## 8. Publish
+
+```sh
+$PY pipeline/run_game.py publish $W <YYYY-MM-DD>-vs-<opp> --opponent <OPP> --eyebrow "Sun Oct 4, 2026 · 7:50 PM · Renton" [--video-ends-early]
+```
+
+This writes `games/<id>/game.json` + `shifts.csv` (with the highlights) and rebuilds `docs/`. The clips live in
+`docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Add any notes to `game.json` (e.g. the
 video ending early) and re-run `$PY pipeline/build_site.py`. Show the user the table and the notable fun stats,
 then ask before committing and pushing: the site is public. After pushing, check that the page is live (Pages
 takes about a minute; add `?v=<random>` to skip the CDN cache). Offer to delete `$W` (the video and crops) once

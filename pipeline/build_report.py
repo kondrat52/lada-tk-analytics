@@ -7,15 +7,18 @@ from roster import SKATERS, TEAM
 
 
 
-def player_rows(A, labels):
+def player_rows(A, labels, cut=None):
+    """cut: video time where the recording stops mid-play; shifts ending there don't count as shortest."""
     players = []
     for num, g in A.groupby("player"):
+        full = g[g.t1 < cut - 1] if cut else g
         per = []
         for lab in labels:
             h = g[g.period == lab]
             per.append([int(len(h)), float(h.dur.sum())] if len(h) else None)
         players.append(dict(num=int(num), name=SKATERS.get(int(num), ""), shifts=int(len(g)), toi=float(g.dur.sum()),
-                            avg=float(g.dur.mean()), median=float(g.dur.median()), longest=float(g.dur.max()), per=per))
+                            avg=float(g.dur.mean()), median=float(g.dur.median()), longest=float(g.dur.max()),
+                            shortest=float(full.dur.min()) if len(full) else None, per=per))
     return players
 
 
@@ -56,11 +59,23 @@ def fun_stats(A, game):
                 reads=reads, pipeline=game.get("pipeline"))
 
 
+def highlights(A, game):
+    """Clips listed in game.json, with the period, and who was on the ice for goals."""
+    out = []
+    for h in game.get("highlights", []):
+        per = next((p for p in game["periods"] if p["start"] <= h["t"] <= p["end"]), None)
+        on = sorted(int(r.player) for r in A.itertuples() if r.t0 <= h["t"] < r.t1) if h["type"] == "goal" else []
+        out.append(dict(h, period=per["label"] if per else "", on_ice=on))
+    return out
+
+
 def build(gamedir, out):
     game = json.load(open(f"{gamedir}/game.json"))
     A = pd.read_csv(f"{gamedir}/shifts.csv")
     periods = game["periods"]
-    data = dict(periods=periods, players=player_rows(A, [p["label"] for p in periods]),
+    cut = periods[-1]["end"] if game.get("video_ends_early") else None
+    data = dict(periods=periods, players=player_rows(A, [p["label"] for p in periods], cut),
+                highlights=highlights(A, game), opponent=game["opponent"], team=TEAM,
                 shifts=[dict(player=int(r.player), period=r.period, t0=float(r.t0), t1=float(r.t1)) for r in A.itertuples()],
                 video=game["video"], fun=fun_stats(A, game))
     html = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "report_template.html")).read()

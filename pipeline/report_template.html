@@ -69,6 +69,16 @@ svg .mut { fill: var(--muted); }
 .dim .bar:not(.hi) { opacity: .28; }
 .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--ice); font: 500 14px/1.3 var(--data); padding: 6px 9px; border-radius: 3px; z-index: 5; }
 a { color: var(--blueline); }
+.hls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+.hl { background: var(--board); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; display: grid; align-content: start; min-width: 0; }
+.hl video { width: 100%; aspect-ratio: 16 / 9; display: block; background: var(--ink); }
+.hl .cap { padding: 10px 14px 12px; display: grid; gap: 4px; }
+.hl .kind { font: 700 21px/1.1 var(--display); letter-spacing: .01em; }
+.hl .kind.for { color: var(--team); } .hl .kind.against { color: var(--redline); } .hl .kind.penalty { color: var(--muted); }
+.hl .meta { font: 500 14px/1.3 var(--data); letter-spacing: .04em; color: var(--muted); }
+.hl .on { font-size: 14px; color: var(--muted); }
+.hl .on b { font: 800 1em/1 var(--display); color: var(--team); }
+.score { font: 600 15px/1.3 var(--data); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .fun { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
 .card { background: var(--board); border: 1px solid var(--rule); border-radius: 4px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
 .card h3 { margin: 0; font: 600 12px/1.2 var(--data); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
@@ -109,6 +119,7 @@ a { color: var(--blueline); }
           <th data-k="avg" tabindex="0">Avg shift</th>
           <th data-k="median" tabindex="0">Median</th>
           <th data-k="longest" tabindex="0">Longest</th>
+          <th data-k="shortest" tabindex="0">Shortest</th>
           <th class="group" data-k="p1" tabindex="0">P1</th>
           <th data-k="p2" tabindex="0">P2</th>
           <th data-k="p3" tabindex="0">P3</th>
@@ -117,6 +128,12 @@ a { color: var(--blueline); }
       </table>
     </div>
     <div class="legend"><span>P1 / P2 / P3: shifts and ice time in each period.</span><span>Ice time includes stoppages while the player was on the ice.</span></div>
+  </section>
+
+  <section id="hlsec">
+    <h2>Highlights</h2>
+    <div class="score" id="score"></div>
+    <div class="hls" id="hls"></div>
   </section>
 
   <section id="funsec">
@@ -150,9 +167,28 @@ document.getElementById("facts").innerHTML = [
   const top = [...DATA.players].sort((a, b) => b.toi - a.toi)[0];
   const ls = DATA.shifts.reduce((a, s) => (s.t1 - s.t0 > a.t1 - a.t0 ? s : a));
   const lp = DATA.players.find(p => p.num === ls.player);
+  const sp = DATA.players.filter(p => p.shortest != null).reduce((a, p) => (p.shortest < a.shortest ? p : a));
   return [[`#${top.num} ${top.name} · ${fmt(top.toi)}`, "most ice time"],
-          [`#${lp.num} ${lp.name} · ${fmt(ls.t1 - ls.t0)}`, "longest shift"]];
+          [`#${lp.num} ${lp.name} · ${fmt(ls.t1 - ls.t0)}`, "longest shift"],
+          [`#${sp.num} ${sp.name} · ${fmt(sp.shortest)}`, "shortest shift"]];
 })()).map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+// highlights
+(() => {
+  const H = DATA.highlights || [];
+  if (!H.length) { document.getElementById("hlsec").hidden = true; return; }
+  const name = n => (DATA.players.find(p => p.num === n) || {}).name || "";
+  const gf = H.filter(h => h.type === "goal" && h.team === "for").length, ga = H.filter(h => h.type === "goal" && h.team === "against").length;
+  document.getElementById("score").textContent = `Goals on video: ${DATA.team} ${gf} · ${DATA.opponent} ${ga}`;
+  document.getElementById("hls").innerHTML = H.map(h => {
+    const kind = h.type === "goal" ? (h.team === "for" ? `${DATA.team} goal` : `${DATA.opponent} goal`) : `Penalty${h.player ? ` · #${h.player} ${name(h.player)}` : ""}`;
+    const cls = h.type === "goal" ? h.team : "penalty";
+    const on = h.on_ice && h.on_ice.length ? `<div class="on">On the ice: ${h.on_ice.map(n => `<b>#${n}</b> ${name(n)}`).join(", ")}</div>` : "";
+    return `<div class="hl"><video controls playsinline preload="none" poster="${h.poster}"><source src="${h.clip}" type="video/mp4"></video>
+      <div class="cap"><div class="kind ${cls}">${kind}</div>
+      <div class="meta">${h.period} · <a href="${VIDEO}?t=${Math.max(0, h.t - 10)}" target="_blank" rel="noopener">${fmt(h.t)} in the full video</a>${h.note ? ` · ${h.note}` : ""}</div>${on}</div></div>`;
+  }).join("");
+})();
+
 // fun stats
 (() => {
   const F = DATA.fun || {}, name = n => (DATA.players.find(p => p.num === n) || {}).name || "";
@@ -187,7 +223,7 @@ const rowsEl = document.querySelector("#tbl tbody");
 const maxToi = Math.max(...DATA.players.map(p => p.toi));
 function per(p, i) { const x = p.per[i]; return x ? `${x[0]} · ${fmt(x[1])}` : "–"; }
 function renderTable() {
-  const val = (p, k) => k.startsWith("p") && k.length === 2 ? (p.per[+k[1] - 1] || [0, 0])[1] : p[k];
+  const val = (p, k) => k.startsWith("p") && k.length === 2 ? (p.per[+k[1] - 1] || [0, 0])[1] : (p[k] ?? Infinity);
   const rows = [...DATA.players].sort((a, b) => {
     const x = val(a, sortKey), y = val(b, sortKey);
     return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortDir;
@@ -196,7 +232,7 @@ function renderTable() {
     <td class="l num">${p.num}</td><td class="l name">${p.name || "<span style='color:var(--muted)'>(name?)</span>"}</td>
     <td>${p.shifts}</td>
     <td>${fmt(p.toi)}<span class="bar-in" style="width:${Math.round(60 * p.toi / maxToi)}px"></span></td>
-    <td>${fmt(p.avg)}</td><td>${fmt(p.median)}</td><td>${fmt(p.longest)}</td>
+    <td>${fmt(p.avg)}</td><td>${fmt(p.median)}</td><td>${fmt(p.longest)}</td><td>${p.shortest != null ? fmt(p.shortest) : "–"}</td>
     <td class="per group">${per(p, 0)}</td><td class="per">${per(p, 1)}</td><td class="per">${per(p, 2)}</td></tr>`).join("");
   document.querySelectorAll("#tbl th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortKey ? (sortDir < 0 ? "descending" : "ascending") : "none"));
 }
