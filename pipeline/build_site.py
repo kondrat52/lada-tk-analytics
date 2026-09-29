@@ -2,7 +2,7 @@
 docs/index.html            season totals + list of games
 docs/games/<id>/index.html one shift sheet per game"""
 import os, sys, json, glob, html
-import pandas as pd
+import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_report import build
 from roster import SKATERS, TEAM
@@ -14,17 +14,25 @@ games, allsh = [], []
 for gd in sorted(glob.glob(f"{ROOT}/games/*/")):
     game, A = build(gd, f"{ROOT}/docs/games/{os.path.basename(gd.rstrip('/'))}/index.html")
     A = A.assign(game=game["id"])
+    # shifts cut off by the recording ending mid-play don't count as short shifts
+    cut = game["periods"][-1]["end"] if game.get("video_ends_early") else None
+    A["cut"] = (A.t1 >= cut - 1) if cut else False
     games.append(game); allsh.append(A)
 A = pd.concat(allsh)
 per_game = A.groupby(["player", "game"]).dur.sum().reset_index()
-season = A.groupby("player").agg(shifts=("dur", "size"), toi=("dur", "sum"), avg=("dur", "mean"), longest=("dur", "max"))
+if "play" not in A:
+    A["play"] = np.nan
+season = A.groupby("player").agg(shifts=("dur", "size"), toi=("dur", "sum"), play=("play", "sum"), avg=("dur", "mean"),
+                                 longest=("dur", "max"))
+season["shortest"] = A[~A.cut.astype(bool)].groupby("player").dur.min()
 season["gp"] = per_game.groupby("player").size()
 season["toi_gp"] = season.toi / season.gp
 season = season.sort_values("toi_gp", ascending=False)
 
 rows = "\n".join(
-    f"<tr><td class='l num'>{p}</td><td class='l name'>{html.escape(SKATERS.get(p, ''))}</td><td>{r.gp}</td>"
-    f"<td>{r.shifts}</td><td>{fmt(r.toi)}</td><td>{fmt(r.toi_gp)}</td><td>{fmt(r.avg)}</td><td>{fmt(r.longest)}</td></tr>"
+    f"<tr><td class='l num'>{p}</td><td class='l name'>{html.escape(SKATERS.get(p, ''))}</td><td>{int(r.gp)}</td>"
+    f"<td>{int(r.shifts)}</td><td>{fmt(r.toi)}</td><td>{fmt(r.toi_gp)}</td><td>{fmt(r.play) if r.play > 0 else '–'}</td>"
+    f"<td>{fmt(r.avg)}</td><td>{fmt(r.longest)}</td><td>{fmt(r.shortest) if r.shortest == r.shortest else '–'}</td></tr>"
     for p, r in season.iterrows())
 cards = "\n".join(
     f"<li><a href='games/{g['id']}/'><span class='d'>{html.escape(g['eyebrow'])}</span>"
@@ -61,9 +69,9 @@ p.note {{ color:var(--muted); margin:0; max-width:70ch; }}
 <header><div class="eyebrow">Rec hockey · Renton</div><h1><span>{html.escape(TEAM)}</span> shift sheets</h1>
 <p class="note">Ice time and shifts for every skater, measured from each week's wide-cut game video.</p></header>
 <section><h2>Games</h2><ul class="games">{cards}</ul></section>
-<section><h2>Season</h2><div class="tablebox"><table><thead><tr><th class="l">#</th><th class="l">Player</th><th>GP</th><th>Shifts</th><th>Ice time</th><th>Per game</th><th>Avg shift</th><th>Longest</th></tr></thead>
+<section><h2>Season</h2><div class="tablebox"><table><thead><tr><th class="l">#</th><th class="l">Player</th><th>GP</th><th>Shifts</th><th>Ice time</th><th>Per game</th><th>Play time</th><th>Avg shift</th><th>Longest</th><th>Shortest</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
-<p class="note">Sorted by ice time per game. Times are real elapsed time on the ice, including stoppages.</p></section>
+<p class="note">Sorted by ice time per game. Ice time is real elapsed time on the ice, including stoppages; play time counts only live play (estimated from the video).</p></section>
 </div></body></html>"""
 open(f"{ROOT}/docs/index.html", "w").write(page)
 open(f"{ROOT}/docs/.nojekyll", "w").write("")

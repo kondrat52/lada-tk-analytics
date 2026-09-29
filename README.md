@@ -39,5 +39,9 @@ python pipeline/build_site.py
 3. Check uncertain or swapped tracks by eye against a reference card of each player's gear.
 4. Solve for who is on the ice every second, assuming 5 skaters (4 on a penalty kill), with changes happening at the bench.
 5. Clean up: gaps under 15 s are merged, and hops under 20 s don't count as shifts.
+6. Estimate stoppages from player motion (a still faceoff setup, then the puck-drop burst) for live play time.
+7. Find goals (every non-period-start center-ice faceoff follows one) and cut zoomed highlight clips with a
+   virtual camera that follows the play or a chosen player.
 
-Times are real elapsed time on the ice, including stoppages, because the video has no game clock.
+Ice time is real elapsed time on the ice, including stoppages, because the video has no game clock. The
+recordings' audio is silent, so nothing relies on sound.

@@ -98,7 +98,14 @@ $PY pipeline/gantt.py $W/p1/shifts_final.csv $W/p1/segs_final.csv $W/gantt_p1.pn
 In the Gantt chart the bottom panel should sit at 5 (4 on a PK). Long stretches at 4 or 6 mean a missed
 player, a penalty, or a bad label: inspect with crop sheets before trusting the numbers.
 
-## 9. Publish
+## 9. Play time and highlights
+
+`run_game.py solve` runs `pipeline/stoppages.py`, which adds a `play` column to `shifts_all.csv` and writes
+`stoppages.json`. For highlights: `run_game.py goals` lists candidate goals, `run_game.py frames` renders frames
+to check them, and `run_game.py clip` cuts a zoomed clip into `docs/games/<id>/clips/` (last argument: an x
+position or `#N` to follow player N). List the clips in `$W/highlights.json`; see the skill for the format.
+
+## 10. Publish
 
 ```sh
 (cd $W && $PY $OLDPWD/pipeline/final_stats.py p1:P1 p2:P2 p3:P3)    # writes $W/shifts_all.csv, prints the table

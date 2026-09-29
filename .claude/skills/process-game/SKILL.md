@@ -18,6 +18,7 @@ fair amount of tokens for the visual review. Keep the user posted with one line 
 - Penalties we took: who and roughly when (period, minute). The video shows a penalty kill only as
   4 skaters, never who sat.
 - New or substitute players (number and surname). Later, unknown numbers on the roster card also need a name.
+- The final score, and roughly when goals were scored if they remember. It makes the goal check in step 7 quick.
 
 Don't wait for answers to start step 1; you need them from step 3 on.
 
@@ -41,7 +42,8 @@ the video decoder.
 Read `$W/break_*.jpg` (each break: the ice empties and both teams sit at their benches for about a minute) and
 `$W/video_end.jpg`. `periods.json` boundaries are usually right to within a few seconds. Fix any that aren't.
 `net` is where our goalie plays that period (540 = left, 3245 = right), and it switches each period. If the video
-ends before the final horn, say so in the game notes later.
+ends before the final horn (play still going in `video_end.jpg`), remember to pass `--video-ends-early` when
+publishing.
 
 ## 3. Penalty kills
 
@@ -129,8 +131,12 @@ $PY pipeline/run_game.py frames $W $W/gz.jpg 150 1450 720 1070 660 3 <t1> <t2> .
 A real goal shows a scramble or shot at one net, the referee pointing at it, and one team celebrating before
 the players drift to center. Most candidates that don't show this are false alarms. `goals` prints which net is
 ours each period, so you can tell goals for from goals against. Tell the user the score you found and ask them
-to confirm it. For each penalty the user named, the call is the referee's raised arm just before the
-penalty-kill faceoff.
+to confirm it.
+
+For each penalty the user named, find the infraction: the referee raises an arm right after it (a delayed penalty),
+play continues until our team touches the puck, then the whistle and the penalty-kill faceoff. The referee may
+signal from the far end, so look at where the penalized player was in the seconds before the arm went up
+(full-rink `frames` 1 s apart).
 
 Make a clip of about 22 s per event, ending a few seconds after the goal or call:
 
@@ -143,8 +149,9 @@ seconds before the infraction (the referee's arm goes up right after it; the inf
 the referee stands). For goals the default framing follows the main group of players; a focus x (about 500 =
 left corner, 3300 = right) keeps the camera on one end. Check a few frames of each clip (cv2 can read the mp4). Then write `$W/highlights.json`:
 `[{"type": "goal", "team": "for", "t": 3828, "clip": "clips/goal-3.mp4", "poster": "clips/goal-3.jpg", "note": "..."},
-{"type": "penalty", "player": 4, "t": 3582, "clip": "clips/penalty-4.mp4", "poster": "clips/penalty-4.jpg", "note": "..."}]`
-(t = seconds of video at the goal or call). The page shows who was on the ice for each goal.
+{"type": "penalty", "player": 4, "t": 3580, "clip": "clips/penalty-4.mp4", "poster": "clips/penalty-4.jpg", "note": "..."}]`
+(t = seconds of video at the goal or infraction). The page shows who was on the ice for each goal. The recording's
+audio is silent, so the clips have no sound.
 
 ## 8. Publish
 
@@ -152,9 +159,9 @@ left corner, 3300 = right) keeps the camera on one end. Check a few frames of ea
 $PY pipeline/run_game.py publish $W <YYYY-MM-DD>-vs-<opp> --opponent <OPP> --eyebrow "Sun Oct 4, 2026 · 7:50 PM · Renton" [--video-ends-early]
 ```
 
-This writes `games/<id>/game.json` + `shifts.csv` (with the highlights) and rebuilds `docs/`. The clips live in
-`docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Add any notes to `game.json` (e.g. the
-video ending early) and re-run `$PY pipeline/build_site.py`. Show the user the table and the notable fun stats,
+This writes `games/<id>/game.json` + `shifts.csv` (with play time, stoppages and highlights) and rebuilds `docs/`.
+The clips live in `docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Open the page locally
+(`docs/games/<id>/index.html`) and look it over. Show the user the table and the notable fun stats,
 then ask before committing and pushing: the site is public. After pushing, check that the page is live (Pages
 takes about a minute; add `?v=<random>` to skip the CDN cache). Offer to delete `$W` (the video and crops) once
 they're happy.
