@@ -1,5 +1,8 @@
 # Runbook: processing a new game
 
+Normally you run `/process-game <link>` in Claude Code, and `pipeline/run_game.py` chains these steps
+(`fetch`, `prepare`, `solve`, `publish`). This page is the manual version, useful when something needs fixing.
+
 Written for Claude Code (or anyone patient). Commands assume the repo root as the working directory,
 `PY` = a Python ≥ 3.10 with `pipeline/requirements.txt` installed, and `W` = a per-game work folder
 **outside** the repo (the video and crops take ~5 GB).

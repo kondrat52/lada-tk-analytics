@@ -12,13 +12,17 @@ Shift sheets for Lada TK's rec hockey games: shifts, ice time and average shift 
 | `games/<date>-vs-<opp>/` | One folder per game: `game.json` (periods, penalty kills, video link, notes) and `shifts.csv` (one row per shift). |
 | `roster.json` | Jersey number → surname. Add new players here. |
 | `pipeline/` | The scripts that turn a game video into `shifts.csv`, and `build_site.py`, which renders `docs/`. |
-| `RUNBOOK.md` | Step-by-step for processing a new game. |
+| `RUNBOOK.md` | The manual steps behind the skill, for debugging or running by hand. |
+| `.claude/skills/process-game/` | The Claude Code skill for the weekly run. |
 
 ## Adding a game
 
-The weekly run is designed to be driven by Claude Code: open this repo and ask it to process the new video, e.g.
+The weekly run is driven by Claude Code. Open this repo and run the project skill:
 
-> Process this week's game: https://youtu.be/XXXXXXXXXXX (opponent: RR). Follow RUNBOOK.md.
+> /process-game https://youtu.be/XXXXXXXXXXX vs RR
+
+The skill (`.claude/skills/process-game/SKILL.md`) asks for the opponent, start time and any penalties, then
+runs `pipeline/run_game.py` (fetch → prepare → review → solve → publish) and asks before pushing.
 
 It takes about two hours on an M-series Mac: roughly 80 minutes of detection, then number reading, a visual review of the uncertain moments, and the final solve. Tell it about anything the video can't show, such as who took a penalty and when.
 
