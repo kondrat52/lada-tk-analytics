@@ -100,7 +100,9 @@ player, a penalty, or a bad label: inspect with crop sheets before trusting the 
 ```sh
 (cd $W && $PY $OLDPWD/pipeline/final_stats.py p1:P1 p2:P2 p3:P3)    # writes $W/shifts_all.csv, prints the table
 mkdir -p games/<date>-vs-<opp> && cp $W/shifts_all.csv games/<date>-vs-<opp>/shifts.csv
-# write games/<date>-vs-<opp>/game.json (copy the previous game's and edit periods, video, PKs, notes)
+# write games/<date>-vs-<opp>/game.json (copy the previous game's and edit periods, video, PKs, notes).
+# Optional extras for the Fun stats section: "fun": {"name_reads": {number: count}} from load_reads()'s
+# name reads, and "pipeline": {"detections", "crops", "reads", "reviewed"} counts from this run.
 $PY pipeline/build_site.py
 git add -A && git commit -m "Add <date> vs <opp>" && git push
 ```
