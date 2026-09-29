@@ -18,6 +18,7 @@
   --team-soft: #cfe3f5;
   --redline: #c8323c;
   --blueline: #1f4fa3;
+  --stop: #e1e8f0;
   --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", sans-serif;
   --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
   --data: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
@@ -25,12 +26,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --ice: #0d1826; --board: #13233a; --ink: #e6eef7; --muted: #93a6bb; --rule: #243a55;
-    --team: #6cb3f0; --team-soft: #1d3b5c; --redline: #ef6a72; --blueline: #7fa6ea; color-scheme: dark;
+    --team: #6cb3f0; --team-soft: #1d3b5c; --redline: #ef6a72; --blueline: #7fa6ea; --stop: #2b4768; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --ice: #0d1826; --board: #13233a; --ink: #e6eef7; --muted: #93a6bb; --rule: #243a55;
-  --team: #6cb3f0; --team-soft: #1d3b5c; --redline: #ef6a72; --blueline: #7fa6ea; color-scheme: dark;
+  --team: #6cb3f0; --team-soft: #1d3b5c; --redline: #ef6a72; --blueline: #7fa6ea; --stop: #2b4768; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--ice); color: var(--ink); font: 400 16px/1.5 var(--body); }
@@ -308,7 +309,7 @@ P.forEach((p, i) => {
 (DATA.stoppages || []).forEach(([a, b]) => {
   const pi = P.findIndex(p => a >= p.start && a < p.end); if (pi < 0) return;
   const per = P[pi], x = x0s[pi] + (a - per.start) * scale, w = (Math.min(b, per.end) - a) * scale;
-  g += `<rect x="${x.toFixed(1)}" y="${TOP - 4}" width="${Math.max(1, w).toFixed(1)}" height="${H - TOP - 2}" fill="var(--rule)" opacity="0.6"/>`;
+  g += `<rect x="${x.toFixed(1)}" y="${TOP - 4}" width="${Math.max(1, w).toFixed(1)}" height="${H - TOP - 2}" fill="var(--stop)"/>`;
 });
 order.forEach((p, r) => {
   const y = TOP + r * LANE;
@@ -321,7 +322,7 @@ DATA.shifts.forEach(s => {
   g += `<a href="${VIDEO}?t=${Math.max(0, Math.round(s.t0) - 3)}" target="_blank" rel="noopener"><rect class="bar" tabindex="0" data-n="${s.player}" data-tip="#${s.player} ${s.period} ${fmt(s.t0 - per.start)}–${fmt(s.t1 - per.start)} (${fmt(s.t1 - s.t0)})" x="${x.toFixed(1)}" y="${TOP + r * LANE + 3}" width="${w.toFixed(1)}" height="${LANE - 7}" rx="2"/></a>`;
 });
 svg.innerHTML = g;
-if ((DATA.stoppages || []).length) document.getElementById("tlnote").innerHTML = "<span>Gray bands: stoppages (estimated from the video).</span>";
+if ((DATA.stoppages || []).length) document.getElementById("tlnote").innerHTML = "<span>Shaded bands: stoppages (estimated from the video).</span>";
 function highlight() {
   svg.classList.toggle("dim", selected !== null);
   svg.querySelectorAll(".bar").forEach(b => b.classList.toggle("hi", +b.dataset.n === selected));
