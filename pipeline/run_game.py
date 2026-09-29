@@ -6,7 +6,8 @@
   run_game.py solve   W                      per period: apply reviews + solve; gantt charts; stats table
   run_game.py goals   W                      candidate goals: center-ice faceoffs + long stoppages (verify by eye)
   run_game.py frames  W OUT.jpg X0 X1 Y0 Y1 TILE_W COLS t1 t2 ...   4K frames (cropped) as a sheet, for verifying
-  run_game.py clip    W GAME_ID NAME T0 T1 POSTER_T [FOCUS_X]        zoomed highlight clip into docs/games/<id>/clips
+  run_game.py clip    W GAME_ID NAME T0 T1 POSTER_T [FOCUS]          zoomed clip into docs/games/<id>/clips;
+                                             FOCUS = x px (540 left net) or #N to follow player N
   run_game.py publish W GAME_ID --opponent RR --eyebrow "Sun Sep 27, 2026 · 7:50 PM · Renton" [--date ...]
 
 W is the per-game work folder (outside the repo). Every step skips work that is already done, so re-running
@@ -297,7 +298,16 @@ def cmd_clip(a):
     out = f"{ROOT}/docs/games/{a.game_id}/clips/{a.name}.mp4"
     os.makedirs(os.path.dirname(out), exist_ok=True)
     cmd = [PY, f"{HERE}/clip.py", f"{W}/full", f"{W}/video.webm", f"{W}/audio.m4a", out, a.t0, a.t1, a.poster]
-    sh(*cmd + ([a.focus] if a.focus is not None else []))
+    focus = a.focus
+    if focus and focus.startswith("#"):
+        # follow a player: his labeled tracks in this window, in time order (first covering track wins)
+        num, t0, t1 = int(focus[1:]), float(a.t0), float(a.t1)
+        P = next(P for P in periods(W) if P["start"] <= t0 <= P["end"])
+        pdir = f"{W}/{P['label'].lower()}"
+        sg = pd.read_csv(f"{pdir}/segs_final.csv")
+        sg = sg[(sg.plabel == num) & (sg.t1 > t0) & (sg.t0 < t1)].sort_values("t0")
+        focus = f"track:{pdir}/tracks_v1.csv:" + ",".join(str(int(x)) for x in sg.tid) if len(sg) else None
+    sh(*cmd + ([focus] if focus else []))
 
 
 def cmd_prepare(a):
@@ -325,6 +335,8 @@ def cmd_solve(a):
            P["start"], P["end"])
         labels.append(f"{p}:{P['label']}")
     sh(PY, f"{HERE}/final_stats.py", *labels, cwd=W)
+    # live play vs stoppages -> "play" column in shifts_all.csv + stoppages.json
+    sh(PY, f"{HERE}/stoppages.py", f"{W}/full", f"{W}/periods.json", f"{W}/shifts_all.csv")
     log(f"check {W}/gantt_*.png: the bottom panel should sit at 5 (4 during a penalty kill)")
 
 
@@ -356,6 +368,8 @@ def cmd_publish(a):
         for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early"):
             if old.get(k):
                 game[k] = old[k]
+    if os.path.exists(f"{W}/stoppages.json"):
+        game["stoppages"] = json.load(open(f"{W}/stoppages.json"))
     if os.path.exists(f"{W}/highlights.json"):  # [{type, team|player, t, clip, poster, note}] from the clips step
         game["highlights"] = json.load(open(f"{W}/highlights.json"))
     json.dump(game, open(gj, "w"), indent=2, ensure_ascii=False)

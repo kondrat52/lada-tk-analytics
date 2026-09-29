@@ -104,7 +104,8 @@ When all are back, check each period's review files together cover every row in 
 $PY pipeline/run_game.py solve $W
 ```
 
-Read `$W/gantt_pN.png`. The bottom panel should sit at 5 (4 inside penalty kills). A stretch of 4 or 6
+`solve` also estimates stoppages from player motion and adds live play time per shift (the video has no usable
+audio, so whistles can't be heard). Read `$W/gantt_pN.png`. The bottom panel should sit at 5 (4 inside penalty kills). A stretch of 4 or 6
 lasting more than ~20 s means a missed player, an unlisted penalty or a bad label. Look at the crops before
 accepting it (`pipeline/sheet.py` makes contact sheets of any crops). The printed table is the result.
 Sanity check: each period's total ice time ≈ 5 × period length (minus a skater per penalty-kill second).
@@ -137,8 +138,10 @@ Make a clip of about 22 s per event, ending a few seconds after the goal or call
 $PY pipeline/run_game.py clip $W <game-id> goal-1 <t-12> <t+10> <t>        # optional last arg: focus x
 ```
 
-Add a focus x (about 500 = our left corner, 3300 = right) when players are spread out and the camera should stay
-on one end. Check a few frames of each clip (cv2 can read the mp4). Then write `$W/highlights.json`:
+For a penalty, follow the player who took it: pass `#<number>` as the last argument, and start the clip a few
+seconds before the infraction (the referee's arm goes up right after it; the infraction may be far from where
+the referee stands). For goals the default framing follows the main group of players; a focus x (about 500 =
+left corner, 3300 = right) keeps the camera on one end. Check a few frames of each clip (cv2 can read the mp4). Then write `$W/highlights.json`:
 `[{"type": "goal", "team": "for", "t": 3828, "clip": "clips/goal-3.mp4", "poster": "clips/goal-3.jpg", "note": "..."},
 {"type": "penalty", "player": 4, "t": 3582, "clip": "clips/penalty-4.mp4", "poster": "clips/penalty-4.jpg", "note": "..."}]`
 (t = seconds of video at the goal or call). The page shows who was on the ice for each goal.

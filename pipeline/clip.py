@@ -1,8 +1,9 @@
-"""clip.py FULLDIR VIDEO AUDIO OUT.mp4 T0 T1 [POSTER_T [FOCUS_X]]
+"""clip.py FULLDIR VIDEO AUDIO OUT.mp4 T0 T1 [POSTER_T [FOCUS]]
 Cut a zoomed highlight clip: a virtual camera follows the main cluster of players (from FULLDIR/dets.csv),
 crops the 4K wide cut to 16:9 and encodes 1280x720 H.264 with the game audio. Writes OUT.jpg as a poster
-frame (at POSTER_T, default the middle of the clip). FOCUS_X (source px, e.g. 540 = left net) keeps the camera near
-that part of the rink when players are spread out."""
+frame (at POSTER_T, default the middle of the clip). FOCUS keeps the camera on part of the rink when players are
+spread out: a source x in px (540 = left net), or "track:TRACKS.csv:TID[,TID...]" to follow one player's track(s)
+(e.g. the player who took a penalty). The audio is left out when the recording's audio is silent."""
 import os, sys, subprocess
 import numpy as np, pandas as pd, cv2, imageio_ffmpeg
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,9 +25,13 @@ def camera_path(full, t0, t1, focus=None):
     for t, g in d.groupby("t"):
         xs, ys, hs = g.fx.values, g.fy.values, g.h.values
         dens = np.exp(-((grid[:, None] - xs[None, :]) / 350.0) ** 2).sum(1)
-        if focus is not None:
-            dens = dens * np.exp(-((grid - focus) / 900.0) ** 2)
-        peak = grid[dens.argmax()]
+        fx = focus(t) if callable(focus) else focus
+        if callable(focus) and fx is not None:
+            peak = fx                     # follow mode: the camera is on this player
+        else:
+            if fx is not None:
+                dens = dens * np.exp(-((grid - fx) / 900.0) ** 2)
+            peak = grid[dens.argmax()]
         m = np.abs(xs - peak) < 650
         if m.sum() < 2:
             m = np.ones(len(xs), bool)
@@ -34,19 +39,45 @@ def camera_path(full, t0, t1, focus=None):
         # zoom to the core of the play, wider for near-camera players (they look bigger)
         w = np.clip(1.15 * spread + 6 * np.median(hs[m]), MIN_W, MAX_W)
         feet = np.median(ys[m])
-        rows.append((t, np.median(xs[m]) * 0.5 + peak * 0.5, feet, w))
+        if callable(focus) and fx is not None:
+            near = np.abs(xs - fx) < 250
+            feet = np.median(ys[near]) if near.any() else feet
+            rows.append((t, fx, feet, max(w, 1300)))
+        else:
+            rows.append((t, np.median(xs[m]) * 0.5 + peak * 0.5, feet, w))
     P = pd.DataFrame(rows, columns=["t", "cx", "cy", "w"]).set_index("t").sort_index()
-    P["cx"] = P.cx.rolling(15, center=True, min_periods=1).mean()
-    P["cy"] = P.cy.rolling(15, center=True, min_periods=1).mean()  # median skate height of the cluster
+    k = 7 if callable(focus) else 15      # follow mode reacts faster
+    P["cx"] = P.cx.rolling(k, center=True, min_periods=1).mean()
+    P["cy"] = P.cy.rolling(k, center=True, min_periods=1).mean()  # median skate height of the cluster
     P["w"] = P.w.rolling(25, center=True, min_periods=1).mean()
     return P
+
+
+def _silent(audio, t0, t1):
+    r = subprocess.run([FF, "-nostdin", "-loglevel", "error", "-ss", str(t0), "-t", str(t1 - t0), "-i", audio,
+                        "-ac", "1", "-ar", "8000", "-f", "s16le", "-"], capture_output=True)
+    return not np.frombuffer(r.stdout, np.int16).any()
 
 
 def main():
     full, video, audio, out = sys.argv[1:5]
     t0, t1 = float(sys.argv[5]), float(sys.argv[6])
     tp = float(sys.argv[7]) if len(sys.argv) > 7 else (t0 + t1) / 2
-    focus = float(sys.argv[8]) if len(sys.argv) > 8 else None
+    focus = None
+    if len(sys.argv) > 8:
+        if sys.argv[8].startswith("track:"):
+            _, path, tids = sys.argv[8].split(":")
+            tr = pd.read_csv(path)
+            parts = [tr[tr.tid == int(x)].groupby("t").fx.first().sort_index() for x in tids.split(",")]
+
+            def focus(t):
+                # tracks in priority order: use the first one that covers time t
+                for p in parts:
+                    if len(p) and p.index.min() - 0.5 <= t <= p.index.max() + 0.5:
+                        return float(np.interp(t, p.index, p.values))
+                return None
+        else:
+            focus = float(sys.argv[8])
     meta = next(imageio_ffmpeg.read_frames(video))
     W, H = meta["size"]; fps = meta["fps"]
     P = camera_path(full, t0, t1, focus)
@@ -54,7 +85,7 @@ def main():
                             "-f", "rawvideo", "-pix_fmt", "bgr24", "-"], stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, bufsize=W * H * 3 * 2)
     enc_cmd = [FF, "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{OUT_W}x{OUT_H}",
                "-r", str(fps), "-i", "-"]
-    if audio and os.path.exists(audio):
+    if audio and os.path.exists(audio) and not _silent(audio, t0, t1):
         enc_cmd += ["-ss", str(t0), "-t", str(t1 - t0), "-i", audio, "-map", "0:v", "-map", "1:a", "-c:a", "aac", "-b:a", "96k"]
     enc_cmd += ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
                 "-shortest", out]

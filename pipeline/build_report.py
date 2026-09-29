@@ -15,10 +15,11 @@ def player_rows(A, labels, cut=None):
         per = []
         for lab in labels:
             h = g[g.period == lab]
-            per.append([int(len(h)), float(h.dur.sum())] if len(h) else None)
+            per.append([int(len(h)), float(h.dur.sum()), float(h.dur.mean())] if len(h) else None)
         players.append(dict(num=int(num), name=SKATERS.get(int(num), ""), shifts=int(len(g)), toi=float(g.dur.sum()),
                             avg=float(g.dur.mean()), median=float(g.dur.median()), longest=float(g.dur.max()),
-                            shortest=float(full.dur.min()) if len(full) else None, per=per))
+                            shortest=float(full.dur.min()) if len(full) else None,
+                            play=float(g.play.sum()) if "play" in g else None, per=per))
     return players
 
 
@@ -76,6 +77,7 @@ def build(gamedir, out):
     cut = periods[-1]["end"] if game.get("video_ends_early") else None
     data = dict(periods=periods, players=player_rows(A, [p["label"] for p in periods], cut),
                 highlights=highlights(A, game), opponent=game["opponent"], team=TEAM,
+                stoppages=game.get("stoppages", []),
                 shifts=[dict(player=int(r.player), period=r.period, t0=float(r.t0), t1=float(r.t1)) for r in A.itertuples()],
                 video=game["video"], fun=fun_stats(A, game))
     html = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "report_template.html")).read()

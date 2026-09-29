@@ -60,6 +60,13 @@ td .bar-in { display: inline-block; height: 8px; background: var(--team); border
 tr.sel td { background: var(--team-soft); }
 tbody tr { cursor: pointer; }
 .group { border-left: 1px solid var(--rule); }
+.sechead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; background: var(--board); }
+.seg button { font: 600 13px/1 var(--data); letter-spacing: .08em; text-transform: uppercase; padding: 9px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button[aria-selected="true"] { background: var(--team); color: var(--board); }
+.seg button:focus-visible { outline: 2px solid var(--blueline); outline-offset: -2px; }
+th.grp { text-align: center; border-left: 1px solid var(--rule); cursor: default; }
+td.gs, th.gs { border-left: 1px solid var(--rule); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 14px; }
 .tl { overflow-x: auto; background: var(--board); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 6px 6px; }
 svg text { fill: var(--ink); font-family: var(--data); }
@@ -108,26 +115,15 @@ a { color: var(--blueline); }
   <div class="facts" id="facts"></div>
 
   <section>
-    <h2>Players</h2>
-    <div class="tablebox">
-      <table id="tbl">
-        <thead><tr>
-          <th class="l" data-k="num" tabindex="0">#</th>
-          <th class="l" data-k="name" tabindex="0">Player</th>
-          <th data-k="shifts" tabindex="0">Shifts</th>
-          <th data-k="toi" tabindex="0" aria-sort="descending">Ice time</th>
-          <th data-k="avg" tabindex="0">Avg shift</th>
-          <th data-k="median" tabindex="0">Median</th>
-          <th data-k="longest" tabindex="0">Longest</th>
-          <th data-k="shortest" tabindex="0">Shortest</th>
-          <th class="group" data-k="p1" tabindex="0">P1</th>
-          <th data-k="p2" tabindex="0">P2</th>
-          <th data-k="p3" tabindex="0">P3</th>
-        </tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="sechead">
+      <h2>Players</h2>
+      <div class="seg" role="tablist" aria-label="Table view">
+        <button type="button" id="v-game" role="tab" aria-selected="true">Game</button>
+        <button type="button" id="v-period" role="tab" aria-selected="false">By period</button>
+      </div>
     </div>
-    <div class="legend"><span>P1 / P2 / P3: shifts and ice time in each period.</span><span>Ice time includes stoppages while the player was on the ice.</span></div>
+    <div class="tablebox"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    <div class="legend" id="legend"></div>
   </section>
 
   <section id="hlsec">
@@ -144,6 +140,7 @@ a { color: var(--blueline); }
   <section>
     <h2>Shift timeline</h2>
     <div class="tl"><svg id="tl" role="img" aria-label="Shift timeline by player and period"></svg></div>
+    <div class="legend" id="tlnote"></div>
   </section>
 
 </div>
@@ -217,30 +214,71 @@ document.getElementById("facts").innerHTML = [
   if (!cards.length) document.getElementById("funsec").hidden = true;
 })();
 
-// table
-let sortKey = "toi", sortDir = -1, selected = null;
-const rowsEl = document.querySelector("#tbl tbody");
+// table: two views (whole game / by period), sortable, click a player to highlight his shifts
+let view = "game", sortKey = "toi", sortDir = -1, selected = null;
+const tbl = document.getElementById("tbl"), rowsEl = tbl.querySelector("tbody");
 const maxToi = Math.max(...DATA.players.map(p => p.toi));
-function per(p, i) { const x = p.per[i]; return x ? `${x[0]} · ${fmt(x[1])}` : "–"; }
+const hasPlay = DATA.players.some(p => p.play != null);
+const t_ = s => (s == null ? "–" : fmt(s));
+const COLS = {
+  game: [
+    { k: "shifts", l: "Shifts", f: p => p.shifts },
+    { k: "toi", l: "Ice time", f: p => `${fmt(p.toi)}<span class="bar-in" style="width:${Math.round(60 * p.toi / maxToi)}px"></span>` },
+    ...(hasPlay ? [{ k: "play", l: "Play time", f: p => t_(p.play) }] : []),
+    { k: "avg", l: "Avg shift", f: p => fmt(p.avg) },
+    { k: "median", l: "Median", f: p => fmt(p.median) },
+    { k: "longest", l: "Longest", f: p => fmt(p.longest) },
+    { k: "shortest", l: "Shortest", f: p => t_(p.shortest) },
+  ],
+  period: P.flatMap((per, i) => [
+    { k: `p${i}n`, l: "Shifts", g: per.label, f: p => (p.per[i] ? p.per[i][0] : "–"), first: true },
+    { k: `p${i}t`, l: "Ice time", f: p => t_(p.per[i] && p.per[i][1]) },
+    { k: `p${i}a`, l: "Avg shift", f: p => t_(p.per[i] && p.per[i][2]) },
+  ]),
+};
+const LEGEND = {
+  game: ["Ice time runs from stepping on to stepping off, stoppages included."].concat(hasPlay ?
+    ["Play time counts only live play: stoppages are estimated from the video (players stop and line up for a faceoff), so quick whistles can slip through."] : []),
+  period: ["Shifts, ice time and average shift length in each period."],
+};
+function val(p, k) {
+  const m = /^p(\d)([nta])$/.exec(k);
+  if (m) { const x = p.per[+m[1]]; return x ? x["nta".indexOf(m[2])] : -1; }
+  return p[k] ?? Infinity;
+}
+function renderHead() {
+  const cols = COLS[view];
+  let h = "";
+  if (view === "period")
+    h += `<tr><th colspan="2"></th>${P.map(per => `<th class="grp" colspan="3">${per.label}</th>`).join("")}</tr>`;
+  h += `<tr><th class="l" data-k="num" tabindex="0">#</th><th class="l" data-k="name" tabindex="0">Player</th>` +
+    cols.map(c => `<th data-k="${c.k}" tabindex="0" class="${c.first ? "gs" : ""}">${c.l}</th>`).join("") + "</tr>";
+  tbl.querySelector("thead").innerHTML = h;
+  tbl.querySelectorAll("th[data-k]").forEach(th => {
+    const go = () => { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : (k === "name" || k === "num" ? 1 : -1); sortKey = k; renderTable(); };
+    th.addEventListener("click", go);
+    th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+  document.getElementById("legend").innerHTML = LEGEND[view].map(s => `<span>${s}</span>`).join("");
+}
 function renderTable() {
-  const val = (p, k) => k.startsWith("p") && k.length === 2 ? (p.per[+k[1] - 1] || [0, 0])[1] : (p[k] ?? Infinity);
   const rows = [...DATA.players].sort((a, b) => {
     const x = val(a, sortKey), y = val(b, sortKey);
     return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortDir;
   });
   rowsEl.innerHTML = rows.map(p => `<tr data-n="${p.num}" class="${selected === p.num ? "sel" : ""}">
-    <td class="l num">${p.num}</td><td class="l name">${p.name || "<span style='color:var(--muted)'>(name?)</span>"}</td>
-    <td>${p.shifts}</td>
-    <td>${fmt(p.toi)}<span class="bar-in" style="width:${Math.round(60 * p.toi / maxToi)}px"></span></td>
-    <td>${fmt(p.avg)}</td><td>${fmt(p.median)}</td><td>${fmt(p.longest)}</td><td>${p.shortest != null ? fmt(p.shortest) : "–"}</td>
-    <td class="per group">${per(p, 0)}</td><td class="per">${per(p, 1)}</td><td class="per">${per(p, 2)}</td></tr>`).join("");
-  document.querySelectorAll("#tbl th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortKey ? (sortDir < 0 ? "descending" : "ascending") : "none"));
+    <td class="l num">${p.num}</td><td class="l name">${p.name || "<span style='color:var(--muted)'>(name?)</span>"}</td>` +
+    COLS[view].map(c => `<td class="${c.first ? "gs" : ""}">${c.f(p)}</td>`).join("") + "</tr>").join("");
+  tbl.querySelectorAll("th[data-k]").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortKey ? (sortDir < 0 ? "descending" : "ascending") : "none"));
 }
-document.querySelectorAll("#tbl th").forEach(th => {
-  const go = () => { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : (k === "name" || k === "num" ? 1 : -1); sortKey = k; renderTable(); };
-  th.addEventListener("click", go);
-  th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
-});
+function setView(v) {
+  view = v;
+  document.getElementById("v-game").setAttribute("aria-selected", v === "game");
+  document.getElementById("v-period").setAttribute("aria-selected", v === "period");
+  renderHead(); renderTable();
+}
+document.getElementById("v-game").addEventListener("click", () => setView("game"));
+document.getElementById("v-period").addEventListener("click", () => setView("period"));
 rowsEl.addEventListener("click", e => {
   const tr = e.target.closest("tr"); if (!tr) return;
   const n = +tr.dataset.n; selected = selected === n ? null : n; renderTable(); highlight();
@@ -267,6 +305,11 @@ P.forEach((p, i) => {
   }
   g += `<rect x="${x}" y="${TOP - 4}" width="${w}" height="${H - TOP - 2}" fill="none" stroke="var(--rule)"/>`;
 });
+(DATA.stoppages || []).forEach(([a, b]) => {
+  const pi = P.findIndex(p => a >= p.start && a < p.end); if (pi < 0) return;
+  const per = P[pi], x = x0s[pi] + (a - per.start) * scale, w = (Math.min(b, per.end) - a) * scale;
+  g += `<rect x="${x.toFixed(1)}" y="${TOP - 4}" width="${Math.max(1, w).toFixed(1)}" height="${H - TOP - 2}" fill="var(--rule)" opacity="0.6"/>`;
+});
 order.forEach((p, r) => {
   const y = TOP + r * LANE;
   g += `<text x="6" y="${y + 15}" font-size="14"><tspan font-weight="600" fill="var(--team)">${p.num}</tspan> ${p.name || ""}</text>`;
@@ -278,6 +321,7 @@ DATA.shifts.forEach(s => {
   g += `<a href="${VIDEO}?t=${Math.max(0, Math.round(s.t0) - 3)}" target="_blank" rel="noopener"><rect class="bar" tabindex="0" data-n="${s.player}" data-tip="#${s.player} ${s.period} ${fmt(s.t0 - per.start)}–${fmt(s.t1 - per.start)} (${fmt(s.t1 - s.t0)})" x="${x.toFixed(1)}" y="${TOP + r * LANE + 3}" width="${w.toFixed(1)}" height="${LANE - 7}" rx="2"/></a>`;
 });
 svg.innerHTML = g;
+if ((DATA.stoppages || []).length) document.getElementById("tlnote").innerHTML = "<span>Gray bands: stoppages (estimated from the video).</span>";
 function highlight() {
   svg.classList.toggle("dim", selected !== null);
   svg.querySelectorAll(".bar").forEach(b => b.classList.toggle("hi", +b.dataset.n === selected));
@@ -290,5 +334,5 @@ svg.addEventListener("mousemove", e => {
   tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px";
 });
 svg.addEventListener("mouseleave", () => tip.hidden = true);
-renderTable();
+renderHead(); renderTable();
 </script>
