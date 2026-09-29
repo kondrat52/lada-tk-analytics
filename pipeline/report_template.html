@@ -72,6 +72,21 @@ svg .mut { fill: var(--muted); }
 .notes p { margin: 0; }
 .notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 a { color: var(--blueline); }
+.fun { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.card { background: var(--board); border: 1px solid var(--rule); border-radius: 4px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.card h3 { margin: 0; font: 600 12px/1.2 var(--data); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.card .big { font: 700 24px/1.1 var(--display); letter-spacing: .01em; }
+.card .n { font: 800 1.05em/1 var(--display); color: var(--team); }
+.card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font: 500 16px/1.3 var(--data); }
+.card li { display: flex; justify-content: space-between; gap: 12px; }
+.card li span:last-child { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.pbar { display: grid; grid-template-columns: 2.2em 1fr auto; align-items: center; gap: 10px; font: 500 16px/1.3 var(--data); }
+.pbar i { display: block; height: 10px; background: var(--team); border-radius: 2px; }
+.numbers { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 32px; }
+.numbers div { display: grid; }
+.numbers b { font: 700 22px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.numbers span { font: 500 12px/1.3 var(--data); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 @media (max-width: 560px) { .wrap { padding-inline: 16px; } .facts b { font-size: 19px; } }
 @media (prefers-reduced-motion: no-preference) { .bar { transition: fill .12s, opacity .12s; } }
 </style>
@@ -105,6 +120,11 @@ a { color: var(--blueline); }
       </table>
     </div>
     <div class="legend"><span>P1 / P2 / P3: shifts and ice time in each period.</span><span>Ice time includes stoppages while the player was on the ice.</span></div>
+  </section>
+
+  <section id="funsec">
+    <h2>Fun stats</h2>
+    <div class="fun" id="fun"></div>
   </section>
 
   <section>
@@ -141,6 +161,33 @@ document.getElementById("facts").innerHTML = [
   return [[`#${top.num} ${top.name} · ${fmt(top.toi)}`, "most ice time"],
           [`#${lp.num} ${lp.name} · ${fmt(ls.t1 - ls.t0)}`, "longest shift"]];
 })()).map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+// fun stats
+(() => {
+  const F = DATA.fun || {}, name = n => (DATA.players.find(p => p.num === n) || {}).name || "";
+  const who = n => `<b class="n">#${n}</b> ${name(n)}`;
+  const cards = [];
+  const list = rows => `<ul>${rows.map(([a, b]) => `<li><span>${a}</span><span>${b}</span></li>`).join("")}</ul>`;
+  if (F.pairs && F.pairs.length) cards.push(`<h3>Best duos</h3>${list(F.pairs.map(p => [`${who(p.a)} + ${who(p.b)}`, fmt(p.sec)]))}<p>Time on the ice together.</p>`);
+  if (F.unit) cards.push(`<h3>Most-used five</h3>${list(F.unit.players.map(n => [who(n), ""]))}<p>Together for ${fmt(F.unit.sec)} of the game.</p>`);
+  if (F.periods) {
+    const mx = Math.max(...F.periods.map(p => p.avg));
+    cards.push(`<h3>Shift length by period</h3>${F.periods.map(p => `<div class="pbar"><span>${p.label}</span><i style="width:${Math.round(100 * p.avg / mx)}%"></i><span>${fmt(p.avg)} avg · ${p.n} shifts</span></div>`).join("")}`);
+  }
+  if (F.quickest) cards.push(`<h3>Quickest changer</h3><div class="big">${who(F.quickest.num)}</div><p>${fmt(F.quickest.avg)} average shift.</p>` +
+    (F.most ? `<h3>Most shifts</h3><div>${F.most.nums.map(who).join(", ")}</div><p>${F.most.n} shifts each.</p>` : ""));
+  (F.pk || []).forEach(k => cards.push(`<h3>Penalty kill</h3><p>${k.period} ${fmt(k.from)}–${fmt(k.to)}${k.player ? ` · ${who(k.player)} in the box` : ""}</p>${list(k.crew.map(c => [who(c.num), fmt(c.sec)]))}`));
+  if (F.reads && F.reads.length > 1) {
+    const top = F.reads[0], low = F.reads[F.reads.length - 1];
+    cards.push(`<h3>Most readable jersey</h3><div class="big">${who(top.num)}</div><p>Name read ${top.n.toLocaleString()} times by the software. Hardest to read: ${who(low.num)}, ${low.n} times.</p>`);
+  }
+  if (F.pipeline) {
+    const P2 = F.pipeline, it = [[P2.detections, "player detections"], [P2.crops, "close-ups of our players"], [P2.reads, "number and name reads"], [P2.reviewed, "tracks checked by eye"]];
+    cards.push(`<div class="numbers">${it.filter(x => x[0]).map(([v, l]) => `<div><b>${v.toLocaleString()}</b><span>${l}</span></div>`).join("")}</div>`);
+  }
+  const box = document.getElementById("fun");
+  box.innerHTML = cards.map((c, i) => c.startsWith('<div class="numbers"') ? c.replace('class="numbers"', 'class="numbers card"') : `<div class="card">${c}</div>`).join("");
+  if (!cards.length) document.getElementById("funsec").hidden = true;
+})();
 document.getElementById("method").innerHTML = DATA.method.map(m => `<li>${m}</li>`).join("");
 
 // table
