@@ -1,0 +1,19 @@
+{
+  "id": "2026-09-27-vs-rr",
+  "date": "2026-09-27",
+  "title": "Lada TK vs RR, Sep 27",
+  "eyebrow": "Sun Sep 27, 2026 · 7:50 PM · Renton",
+  "opponent": "RR",
+  "video": "https://youtu.be/57GWYeBUi2M",
+  "periods": [
+    {"label": "P1", "start": 0, "end": 1134},
+    {"label": "P2", "start": 1196, "end": 2313},
+    {"label": "P3", "start": 2388, "end": 3915}
+  ],
+  "nets": {"P1": 540, "P2": 3245, "P3": 540},
+  "penalty_kills": [{"period": "P3", "start": 3602, "end": 3798, "player": 4}],
+  "notes": [
+    "Penalty kill from 60:02 to 63:18 of the video (Sokolov #4 in the box), solved with 4 skaters on the ice.",
+    "The recording stops at 65:15 with play still going, so period 3 covers the 25½ minutes on video and the very end of the game is missing. Shifts in progress at that point are cut off there."
+  ]
+}

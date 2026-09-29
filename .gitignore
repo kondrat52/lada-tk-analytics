@@ -1,0 +1,7 @@
+# per-game working data (video, detections, crops) lives outside the repo; keep stray copies out too
+work/
+*.webm
+*.mp4
+*.pt
+__pycache__/
+.DS_Store

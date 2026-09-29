@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: a game-sheet column: header strip, summary line, sortable player table, then a three-period shift timeline, then method notes. */
+:root {
+  --ice: #f4f8fb;
+  --board: #ffffff;
+  --ink: #13243a;
+  --muted: #5b6b7e;
+  --rule: #d6e0ea;
+  --team: #3d8fd6;
+  --team-soft: #cfe3f5;
+  --redline: #c8323c;
+  --blueline: #1f4fa3;
+  --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --data: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ice: #0d1826; --board: #13233a; --ink: #e6eef7; --muted: #93a6bb; --rule: #243a55;
+    --team: #6cb3f0; --team-soft: #1d3b5c; --redline: #ef6a72; --blueline: #7fa6ea; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ice: #0d1826; --board: #13233a; --ink: #e6eef7; --muted: #93a6bb; --rule: #243a55;
+  --team: #6cb3f0; --team-soft: #1d3b5c; --redline: #ef6a72; --blueline: #7fa6ea; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ice); color: var(--ink); font: 400 16px/1.5 var(--body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; display: grid; gap: 28px; }
+header { display: grid; gap: 6px; border-bottom: 3px solid var(--redline); padding-bottom: 14px; }
+.eyebrow { font: 600 13px/1.2 var(--data); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 800 clamp(34px, 6vw, 56px)/0.95 var(--display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+h1 .team { color: var(--team); }
+h2 { font: 700 26px/1.1 var(--display); letter-spacing: .02em; margin: 0; text-transform: uppercase; }
+.sub { color: var(--muted); max-width: 70ch; margin: 0; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 26px; font: 500 15px/1.3 var(--data); letter-spacing: .03em; }
+.facts b { font-weight: 600; font-size: 22px; font-variant-numeric: tabular-nums; display: block; }
+.facts span { color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: .1em; }
+section { display: grid; gap: 12px; min-width: 0; }
+.tablebox { overflow-x: auto; background: var(--board); border: 1px solid var(--rule); border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule); }
+th { font: 600 12px/1.2 var(--data); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--board); }
+th:focus-visible, .bar:focus-visible { outline: 2px solid var(--team); outline-offset: 2px; }
+th[aria-sort="descending"]::after { content: " ▼"; } th[aria-sort="ascending"]::after { content: " ▲"; }
+th.l, td.l { text-align: left; }
+td { font: 500 16px/1.2 var(--data); }
+td.num { font: 800 20px/1 var(--display); color: var(--team); width: 3.2em; }
+td.name { font: 500 16px/1.2 var(--body); }
+td.per { color: var(--muted); }
+td .bar-in { display: inline-block; height: 8px; background: var(--team); border-radius: 2px; vertical-align: middle; margin-left: 8px; }
+tr.sel td { background: var(--team-soft); }
+tbody tr { cursor: pointer; }
+.group { border-left: 1px solid var(--rule); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 14px; }
+.tl { overflow-x: auto; background: var(--board); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 6px 6px; }
+svg text { fill: var(--ink); font-family: var(--data); }
+svg .mut { fill: var(--muted); }
+.bar { fill: var(--team); cursor: pointer; }
+.bar:hover, .bar.hi { fill: var(--blueline); }
+.dim .bar:not(.hi) { opacity: .28; }
+.tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--ice); font: 500 14px/1.3 var(--data); padding: 6px 9px; border-radius: 3px; z-index: 5; }
+.notes { display: grid; gap: 10px; max-width: 75ch; color: var(--ink); }
+.notes p { margin: 0; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+a { color: var(--blueline); }
+@media (max-width: 560px) { .wrap { padding-inline: 16px; } .facts b { font-size: 19px; } }
+@media (prefers-reduced-motion: no-preference) { .bar { transition: fill .12s, opacity .12s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><a href="../../">All games</a> · __EYEBROW__</div>
+    <h1><span class="team">__TEAM__</span> vs __OPP__</h1>
+    <p class="sub">Shift sheet: time on ice for every __TEAM__ skater, measured from the <a href="__VIDEO__" target="_blank" rel="noopener">wide-cut game video</a>. Click a column to sort, click a player to highlight his shifts, and click any shift in the timeline to open the video at that moment.</p>
+  </header>
+
+  <div class="facts" id="facts"></div>
+
+  <section>
+    <h2>Players</h2>
+    <div class="tablebox">
+      <table id="tbl">
+        <thead><tr>
+          <th class="l" data-k="num" tabindex="0">#</th>
+          <th class="l" data-k="name" tabindex="0">Player</th>
+          <th data-k="shifts" tabindex="0">Shifts</th>
+          <th data-k="toi" tabindex="0" aria-sort="descending">Ice time</th>
+          <th data-k="avg" tabindex="0">Avg shift</th>
+          <th data-k="median" tabindex="0">Median</th>
+          <th data-k="longest" tabindex="0">Longest</th>
+          <th class="group" data-k="p1" tabindex="0">P1</th>
+          <th data-k="p2" tabindex="0">P2</th>
+          <th data-k="p3" tabindex="0">P3</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="legend"><span>P1 / P2 / P3: shifts and ice time in each period.</span><span>Ice time includes stoppages while the player was on the ice.</span></div>
+  </section>
+
+  <section>
+    <h2>Shift timeline</h2>
+    <div class="tl"><svg id="tl" role="img" aria-label="Shift timeline by player and period"></svg></div>
+  </section>
+
+  <section class="notes">
+    <h2>How this was measured</h2>
+    <p>No one kept a clock on the bench. These numbers come from the video:</p>
+    <ul id="method"></ul>
+  </section>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = __DATA__;
+const VIDEO = DATA.video;
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+const P = DATA.periods;
+
+// facts strip
+const tot = DATA.players.reduce((a, p) => a + p.toi, 0);
+const nsh = DATA.players.reduce((a, p) => a + p.shifts, 0);
+document.getElementById("facts").innerHTML = [
+  [DATA.players.length, "skaters"],
+  [P.map(p => fmt(p.end - p.start)).join(" · "), "period lengths"],
+  [nsh, "shifts"],
+  [fmt(tot / nsh), "average shift"],
+].concat((() => {
+  const top = [...DATA.players].sort((a, b) => b.toi - a.toi)[0];
+  const ls = DATA.shifts.reduce((a, s) => (s.t1 - s.t0 > a.t1 - a.t0 ? s : a));
+  const lp = DATA.players.find(p => p.num === ls.player);
+  return [[`#${top.num} ${top.name} · ${fmt(top.toi)}`, "most ice time"],
+          [`#${lp.num} ${lp.name} · ${fmt(ls.t1 - ls.t0)}`, "longest shift"]];
+})()).map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+document.getElementById("method").innerHTML = DATA.method.map(m => `<li>${m}</li>`).join("");
+
+// table
+let sortKey = "toi", sortDir = -1, selected = null;
+const rowsEl = document.querySelector("#tbl tbody");
+const maxToi = Math.max(...DATA.players.map(p => p.toi));
+function per(p, i) { const x = p.per[i]; return x ? `${x[0]} · ${fmt(x[1])}` : "–"; }
+function renderTable() {
+  const val = (p, k) => k.startsWith("p") && k.length === 2 ? (p.per[+k[1] - 1] || [0, 0])[1] : p[k];
+  const rows = [...DATA.players].sort((a, b) => {
+    const x = val(a, sortKey), y = val(b, sortKey);
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortDir;
+  });
+  rowsEl.innerHTML = rows.map(p => `<tr data-n="${p.num}" class="${selected === p.num ? "sel" : ""}">
+    <td class="l num">${p.num}</td><td class="l name">${p.name || "<span style='color:var(--muted)'>(name?)</span>"}</td>
+    <td>${p.shifts}</td>
+    <td>${fmt(p.toi)}<span class="bar-in" style="width:${Math.round(60 * p.toi / maxToi)}px"></span></td>
+    <td>${fmt(p.avg)}</td><td>${fmt(p.median)}</td><td>${fmt(p.longest)}</td>
+    <td class="per group">${per(p, 0)}</td><td class="per">${per(p, 1)}</td><td class="per">${per(p, 2)}</td></tr>`).join("");
+  document.querySelectorAll("#tbl th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortKey ? (sortDir < 0 ? "descending" : "ascending") : "none"));
+}
+document.querySelectorAll("#tbl th").forEach(th => {
+  const go = () => { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : (k === "name" || k === "num" ? 1 : -1); sortKey = k; renderTable(); };
+  th.addEventListener("click", go);
+  th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+});
+rowsEl.addEventListener("click", e => {
+  const tr = e.target.closest("tr"); if (!tr) return;
+  const n = +tr.dataset.n; selected = selected === n ? null : n; renderTable(); highlight();
+});
+
+// timeline: one lane per player, three period blocks side by side, shared seconds scale
+const svg = document.getElementById("tl");
+const order = [...DATA.players].sort((a, b) => a.num - b.num);
+const LW = 118, LANE = 22, TOP = 30, GAP = 18, W = 1060;
+const totalLen = P.reduce((a, p) => a + (p.end - p.start), 0);
+const scale = (W - LW - GAP * (P.length - 1) - 28) / totalLen;
+const x0s = []; let acc = LW;
+P.forEach(p => { x0s.push(acc); acc += (p.end - p.start) * scale + GAP; });
+const H = TOP + order.length * LANE + 8;
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", W); svg.setAttribute("height", H);
+let g = "";
+P.forEach((p, i) => {
+  const x = x0s[i], w = (p.end - p.start) * scale;
+  g += `<text x="${x}" y="14" font-size="13" font-weight="600">${p.label}</text>`;
+  for (let m = 5; m * 60 < p.end - p.start; m += 5) {
+    const xx = x + m * 60 * scale;
+    g += `<line x1="${xx}" x2="${xx}" y1="${TOP - 6}" y2="${H - 6}" stroke="var(--rule)" stroke-width="1"/>`;
+    g += `<text class="mut" x="${xx}" y="${TOP - 10}" font-size="11" text-anchor="middle">${m}:00</text>`;
+  }
+  g += `<rect x="${x}" y="${TOP - 4}" width="${w}" height="${H - TOP - 2}" fill="none" stroke="var(--rule)"/>`;
+});
+order.forEach((p, r) => {
+  const y = TOP + r * LANE;
+  g += `<text x="6" y="${y + 15}" font-size="14"><tspan font-weight="600" fill="var(--team)">${p.num}</tspan> ${p.name || ""}</text>`;
+});
+DATA.shifts.forEach(s => {
+  const r = order.findIndex(p => p.num === s.player), pi = P.findIndex(p => p.label === s.period);
+  if (r < 0 || pi < 0) return;
+  const per = P[pi], x = x0s[pi] + (s.t0 - per.start) * scale, w = Math.max(2, (s.t1 - s.t0) * scale);
+  g += `<a href="${VIDEO}?t=${Math.max(0, Math.round(s.t0) - 3)}" target="_blank" rel="noopener"><rect class="bar" tabindex="0" data-n="${s.player}" data-tip="#${s.player} ${s.period} ${fmt(s.t0 - per.start)}–${fmt(s.t1 - per.start)} (${fmt(s.t1 - s.t0)})" x="${x.toFixed(1)}" y="${TOP + r * LANE + 3}" width="${w.toFixed(1)}" height="${LANE - 7}" rx="2"/></a>`;
+});
+svg.innerHTML = g;
+function highlight() {
+  svg.classList.toggle("dim", selected !== null);
+  svg.querySelectorAll(".bar").forEach(b => b.classList.toggle("hi", +b.dataset.n === selected));
+}
+const tip = document.getElementById("tip");
+svg.addEventListener("mousemove", e => {
+  const b = e.target.closest(".bar");
+  if (!b) { tip.hidden = true; return; }
+  tip.textContent = b.dataset.tip + " · opens video"; tip.hidden = false;
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px";
+});
+svg.addEventListener("mouseleave", () => tip.hidden = true);
+renderTable();
+</script>

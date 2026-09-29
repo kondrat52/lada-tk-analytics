@@ -1,0 +1,10 @@
+{
+  "team": "Lada TK",
+  "jersey": "light blue",
+  "goalies": {"58": ""},
+  "skaters": {
+    "4": "Sokolov", "12": "Kondratenko", "13": "Belousenko", "18": "Petrov", "26": "Babkin",
+    "31": "Vasyliev", "33": "Zamutdinov", "61": "Prozhogin", "64": "Belov", "74": "Bronnikov",
+    "78": "Shakhov", "82": "Podkorytov", "89": "Olyanich", "90": "Ivanov"
+  }
+}
