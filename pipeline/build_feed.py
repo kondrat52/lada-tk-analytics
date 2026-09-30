@@ -47,6 +47,12 @@ def season_table(A):
     return s.sort_values("toi_gp", ascending=False)
 
 
+def _when_where(game):
+    """'Sun Sep 27, 2026 · 7:50 PM · Renton' -> ('7:50 PM', 'Renton'); missing parts are None."""
+    parts = [p.strip() for p in (game.get("eyebrow") or "").split("·")]
+    return (parts[1] if len(parts) > 1 else None), (parts[2] if len(parts) > 2 else None)
+
+
 def game_doc(game, A, players, highlights):
     """players/highlights: as computed for the game page (build_report.player_rows / highlights)."""
     base = SITE_URL.rstrip("/") + f"/games/{game['id']}/"
@@ -58,6 +64,8 @@ def game_doc(game, A, players, highlights):
         "date": game["date"],
         "title": game.get("title"),
         "subtitle": game.get("eyebrow"),
+        "time": _when_where(game)[0],
+        "rink": _when_where(game)[1],
         "team": _team(),
         "opponent": {"code": game["opponent"], "name": game.get("opponent_name") or OPPONENTS.get(game["opponent"])},
         "lada_game_id": game.get("lada_game_id"),
@@ -118,6 +126,7 @@ def write_feed(root, games, docs_by_game, season):
         "schema": SCHEMA, "team": _team(), "site_url": site + "/", "updated": updated,
         "season_url": f"{site}/api/season.json", "roster_url": f"{site}/api/roster.json",
         "games": [{"id": g["id"], "date": g["date"], "title": g.get("title"), "subtitle": g.get("eyebrow"),
+                   "time": _when_where(g)[0], "rink": _when_where(g)[1],
                    "opponent": {"code": g["opponent"], "name": g.get("opponent_name") or OPPONENTS.get(g["opponent"])},
                    "lada_game_id": g.get("lada_game_id"),
                    "goals_on_video": docs_by_game[g["id"]]["goals_on_video"],

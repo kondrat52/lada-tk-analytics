@@ -48,7 +48,7 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
 }
 ```
 
-`goals_on_video` counts the goals found in the recording. It isn't the official score: the recording can end
+`time` and `rink` (e.g. `"7:50 PM"`, `"Renton"`) are also on each game file. `goals_on_video` counts the goals found in the recording. It isn't the official score: the recording can end
 before the final horn (`video_ends_early` in the game file).
 
 ## `games/<id>.json`
