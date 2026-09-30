@@ -73,8 +73,9 @@ $PY pipeline/roster_card.py $W/p1 $W/rev_p1/roster_card.jpg 8
 
 Repeat for p2 and p3. Finish OCR (step 4) before this step, and never re-run `run_period.py` for a period
 after its review (step 7) has started: review rows point at segment numbers, and a new segmentation scrambles
-them. Look at `roster_card.jpg`. Every row should be one player. New numbers mean a new or
-sub player: ask for the name and add it to `roster.json`.
+them. Look at `roster_card.jpg`. Every row should be one player. The card only has roster numbers, so run
+`run_game.py unknown $W` before tracking to find new or sub players (numbers read hundreds of times that aren't
+in `roster.json`, with a crop sheet each): add ours to `roster.json`; white jerseys are opponents.
 
 ## 7. Visual review (Claude subagents, ~15 min in parallel)
 

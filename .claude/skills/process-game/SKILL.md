@@ -18,7 +18,7 @@ fair amount of tokens for the visual review. Keep the user posted with one line 
   "LTKvsTTT 5:55 PM PDT - SEP 13, 2026 (Snoqualmie) - wide cut".
 - Penalties we took: who and roughly when (period, minute). The video shows a penalty kill only as
   4 skaters, never who sat.
-- New or substitute players (number and surname). Later, unknown numbers on the roster card also need a name.
+- New or substitute players (number and surname). Step 4 also finds them from the jerseys.
 - The final score, and roughly when goals were scored if they remember. It makes the goal check in step 7 quick.
 
 Don't wait for answers to start step 1; you need them from step 3 on.
@@ -70,13 +70,27 @@ takes 3+ minutes of real time. Add it to that period in `periods.json`:
 
 ## 4. Prepare the review
 
+First look for players who aren't in `roster.json`. The roster card only has rows for roster numbers, so a new
+or substitute player never shows up on it:
+
+```sh
+$PY pipeline/run_game.py unknown $W
+```
+
+It lists numbers the OCR read hundreds of times that aren't on the roster, with any surname read on the same
+crops and a crop sheet `$W/unknown_<N>.jpg`. Read the sheet. A light-blue jersey is ours: add the number and the
+surname on the back to `roster.json` (tell the user the name in the summary so they can correct the spelling). A
+white jersey is an opponent whose lettering happens to be blue: ignore it. Then:
+
 ```sh
 $PY pipeline/run_game.py prepare $W
 ```
 
 This makes per-period tracks, review sheets and a roster card in `$W/rev_pN/`. Read one `roster_card.jpg`. Each
-row should be one player with a consistent look. Get names for any number that isn't in `roster.json` and add
-them. Never re-run `prepare` for a period once its review started (review rows point at segment numbers).
+row should be one player with a consistent look. A roster player with an empty row most likely didn't play: say so
+in the review prompt. If you add a player after `prepare`, delete `$W/p*` and `$W/rev_p*` and run it again, but
+only before the review starts: never re-run `prepare` for a period once its review started (review rows point at
+segment numbers).
 
 ## 5. Visual review (subagents, parallel)
 
@@ -91,7 +105,8 @@ per chunk, all at once. Use letters a, b, c… per period. Prompt (fill the brac
 > 1. First Read `roster_card.jpg`. Each row shows one player of the light-blue team (label "#N" = jersey number)
 > in several views. Learn distinguishing features: number/name on the back (also sleeve numbers), sock
 > color/stripes, pants (black shorts over white socks vs. long black), helmet color, glove color, skate color.
-> Roster: [#N SURNAME list from roster.json]. If you clearly see another number on a light-blue jersey, report it.
+> Roster: [#N SURNAME list from roster.json]. [(#N and #M probably did not play this game.)] If you clearly see
+> another number on a light-blue jersey, report it.
 > #58 is the goalie (big leg pads): report "G" for goalie rows.
 >
 > 2. Then Read ONLY these sheets: [sheet_XXX.jpg, …]. Each sheet has up to 8 rows. Each row = one tracked

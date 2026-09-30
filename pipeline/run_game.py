@@ -3,6 +3,7 @@
   run_game.py fetch   URL W [--rink NAME] [--limit SEC]   download, calibrate, detect (auto-restart), OCR,
                                              propose periods; --rink: camera geometry from rink.py (renton)
   run_game.py skaters W T0 T1               our skaters detected on the ice per 5 s (find penalty kills)
+  run_game.py unknown W                      numbers/surnames read that aren't on the roster (new players?)
   run_game.py prepare W                      per period: tracking, review sheets, roster card
   run_game.py solve   W                      per period: apply reviews + solve; gantt charts; stats table
   run_game.py goals   W                      candidate goals: center-ice faceoffs + long stoppages (verify by eye)
@@ -298,6 +299,43 @@ def cmd_goals(a):
           "referee pointing at it, and one team celebrating before the center faceoff.")
 
 
+def cmd_unknown(a):
+    """Jersey numbers and surnames the OCR read that aren't in roster.json: new or substitute players, or an
+    opponent whose white jersey has blue lettering. Writes W/unknown_<N>.jpg crop sheets to check each by eye."""
+    from roster import SKATERS, GOALIES
+    from reads import name_to_num
+    W = os.path.abspath(a.W); full = f"{W}/full"
+    o = pd.concat([pd.read_csv(f, header=None, names=["file", "text", "score"]) for f in glob.glob(f"{full}/ocr_*.csv")])
+    o = o[o.score >= 0.85]; o["up"] = o.text.astype(str).str.upper().str.strip()
+    known = set(SKATERS) | set(GOALIES)
+    digits = "".join(str(n) for n in known)
+    dig = o[o.up.str.fullmatch(r"\d{1,2}")]; dig = dig.assign(num=dig.up.astype(int))
+    regular = dig[dig.num.isin(known)].num.value_counts()
+    # a teammate who plays gets hundreds of reads; opponents' numbers and misreads get a few dozen
+    floor = max(30, int(0.15 * regular[regular >= 100].median())) if (regular >= 100).any() else 30
+    # single digits are mostly partial reads of roster numbers (8 from 18/78): only count ones no roster number has
+    dig = dig[~dig.num.isin(known) & ((dig.num >= 10) | ~dig.num.astype(str).isin(list(digits)))]
+    alpha = o[o.up.str.fullmatch(r"[A-Z]{4,}")]
+    alpha = alpha[[name_to_num(t) is None for t in alpha.up]]
+    cnt = dig.num.value_counts()
+    fmt = lambda s: ", ".join(f"{k} x{v}" for k, v in s.items()) or "-"
+    print(f"unknown numbers read {floor}+ times (regulars get ~{int(regular[regular >= 100].median()) if (regular >= 100).any() else 0}):")
+    for n, c in cnt[cnt >= floor].items():
+        files = sorted(set(dig[dig.num == n].file))
+        sheet = f"{W}/unknown_{n}.jpg"
+        subprocess.run([PY, f"{HERE}/sheet.py", sheet, "110", "180", "12"] +
+                       [f"{full}/crops/{f}::" for f in files[::max(1, len(files) // 12)][:12]], stderr=subprocess.DEVNULL)
+        print(f"  #{n}: {c} reads; surnames on the same crops: {fmt(alpha[alpha.file.isin(files)].up.value_counts().head(3))}; "
+              f"crops: {sheet}")
+    if not (cnt >= floor).any():
+        print("  none")
+    print("  fewer reads (usually opponents or misreads):", fmt(cnt[(cnt < floor) & (cnt >= 30)].head(8)))
+    lone = alpha[~alpha.file.isin(set(dig.file))].up.value_counts()
+    print("  other surnames read 20+ times:", fmt(lone[lone >= 20].head(8)))
+    print("Check each sheet: light-blue jersey = ours (add number and surname to roster.json, then prepare); "
+          "white = an opponent (ignore).")
+
+
 def cmd_frames(a):
     import cv2, imageio_ffmpeg
     FF = imageio_ffmpeg.get_ffmpeg_exe(); vid = f"{a.W}/video.webm"
@@ -409,6 +447,7 @@ if __name__ == "__main__":
     s = sub.add_parser("skaters"); s.add_argument("W"); s.add_argument("T0", type=float); s.add_argument("T1", type=float)
     sub.add_parser("prepare").add_argument("W")
     sub.add_parser("goals").add_argument("W")
+    sub.add_parser("unknown").add_argument("W")
     fr = sub.add_parser("frames"); fr.add_argument("W"); fr.add_argument("out")
     for k in ("x0", "x1", "y0", "y1", "tile_w", "cols"):
         fr.add_argument(k, type=int)
@@ -425,4 +464,4 @@ if __name__ == "__main__":
         os.makedirs(a.W, exist_ok=True)
         open(f"{a.W}/url.txt", "w").write(a.url)
     {"fetch": cmd_fetch, "skaters": cmd_skaters, "prepare": cmd_prepare, "solve": cmd_solve, "goals": cmd_goals,
-     "frames": cmd_frames, "clip": cmd_clip, "publish": cmd_publish}[a.cmd](a)
+     "frames": cmd_frames, "clip": cmd_clip, "publish": cmd_publish, "unknown": cmd_unknown}[a.cmd](a)
