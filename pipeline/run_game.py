@@ -429,7 +429,7 @@ def cmd_publish(a):
     gj = f"{gd}/game.json"
     if os.path.exists(gj):  # keep hand-written fields (notes, title tweaks) from an earlier publish
         old = json.load(open(gj))
-        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early"):
+        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early", "lada_game_id", "opponent_name"):
             if old.get(k):
                 game[k] = old[k]
     if os.path.exists(f"{W}/stoppages.json"):

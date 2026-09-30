@@ -1,10 +1,43 @@
 {
   "team": "Lada TK",
+  "team_name": "LADA Turbo Kings",
+  "lada_team_id": 24,
+  "site_url": "https://kondrat52.github.io/lada-tk-analytics/",
   "jersey": "light blue",
-  "goalies": {"58": ""},
+  "goalies": {
+    "58": "Fisenko"
+  },
   "skaters": {
-    "4": "Sokolov", "12": "Kondratenko", "13": "Belousenko", "14": "Radutskiy", "18": "Petrov", "26": "Babkin",
-    "31": "Vasyliev", "33": "Nizamutdinov", "61": "Prozhogin", "64": "Belov", "74": "Bronnikov",
-    "78": "Shakhov", "82": "Podkorytov", "89": "Olyanich", "90": "Ivanov"
+    "4": "Sokolov",
+    "12": "Kondratenko",
+    "13": "Belousenko",
+    "14": "Radutskiy",
+    "18": "Petrov",
+    "26": "Babkin",
+    "31": "Vasyliev",
+    "33": "Nizamutdinov",
+    "61": "Prozhogin",
+    "64": "Belov",
+    "74": "Bronnikov",
+    "78": "Shakhov",
+    "82": "Podkorytov",
+    "89": "Olyanich",
+    "90": "Ivanov"
+  },
+  "lada_player_ids": {
+    "4": 11133,
+    "12": 14209,
+    "13": 11131,
+    "14": 11145,
+    "18": 12165,
+    "26": 19314,
+    "31": 14210,
+    "61": 11138,
+    "64": 14208,
+    "78": 12161,
+    "82": 19315,
+    "89": 11140,
+    "90": 11144,
+    "58": 17285
   }
 }

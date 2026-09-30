@@ -87,7 +87,7 @@ def build(gamedir, out):
     html = html.replace("__DATA__", json.dumps(data))
     os.makedirs(os.path.dirname(out), exist_ok=True)
     open(out, "w").write(html)
-    return game, A
+    return game, A, data
 
 
 if __name__ == "__main__":

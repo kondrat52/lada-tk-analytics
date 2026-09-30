@@ -21,7 +21,9 @@ ul.games a:hover, ul.games a:focus-visible { border-color:var(--team); outline:n
 .tablebox { overflow-x:auto; background:var(--board); border:1px solid var(--rule); border-radius:4px; }
 table { border-collapse:collapse; width:100%; min-width:620px; font-variant-numeric:tabular-nums; }
 th, td { padding:8px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--rule); }
-th { font:600 12px/1.2 var(--data); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+th { font:600 12px/1.2 var(--data); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); cursor:pointer; user-select:none; }
+th[aria-sort="descending"]::after { content:" ▼"; } th[aria-sort="ascending"]::after { content:" ▲"; }
+th:focus-visible { outline:2px solid var(--team); outline-offset:2px; }
 td { font:500 16px/1.2 var(--data); } .l { text-align:left; } td.num { font:800 20px/1 var(--display); color:var(--team); width:3.2em; } td.name { font:500 16px/1.2 var(--body); }
 p.note { color:var(--muted); margin:0; max-width:70ch; }
 </style></head><body><div class="wrap">
@@ -29,21 +31,44 @@ p.note { color:var(--muted); margin:0; max-width:70ch; }
 <p class="note">Ice time and shifts for every skater, measured from each week's wide-cut game video.</p></header>
 <section><h2>Games</h2><ul class="games"><li><a href='games/2026-09-27-vs-rr/'><span class='d'>Sun Sep 27, 2026 · 7:50 PM · Renton</span><span class='t'>vs RR</span></a></li>
 <li><a href='games/2026-09-13-vs-ttt/'><span class='d'>Sun Sep 13, 2026 · 5:55 PM · Snoqualmie</span><span class='t'>vs TTT</span></a></li></ul></section>
-<section><h2>Season</h2><div class="tablebox"><table><thead><tr><th class="l">#</th><th class="l">Player</th><th>GP</th><th>Shifts</th><th>Ice time</th><th>Per game</th><th>Play time</th><th>Avg shift</th><th>Longest</th><th>Shortest</th></tr></thead>
-<tbody><tr><td class='l num'>13</td><td class='l name'>Belousenko</td><td>2</td><td>25</td><td>65:30</td><td>32:45</td><td>48:38</td><td>2:37</td><td>3:53</td><td>1:25</td></tr>
-<tr><td class='l num'>74</td><td class='l name'>Bronnikov</td><td>2</td><td>26</td><td>57:10</td><td>28:35</td><td>44:40</td><td>2:12</td><td>3:27</td><td>0:20</td></tr>
-<tr><td class='l num'>78</td><td class='l name'>Shakhov</td><td>2</td><td>27</td><td>53:11</td><td>26:36</td><td>37:33</td><td>1:58</td><td>3:09</td><td>0:39</td></tr>
-<tr><td class='l num'>12</td><td class='l name'>Kondratenko</td><td>2</td><td>26</td><td>49:41</td><td>24:50</td><td>36:48</td><td>1:55</td><td>2:55</td><td>0:43</td></tr>
-<tr><td class='l num'>33</td><td class='l name'>Nizamutdinov</td><td>1</td><td>12</td><td>21:38</td><td>21:38</td><td>16:33</td><td>1:48</td><td>3:19</td><td>1:13</td></tr>
-<tr><td class='l num'>4</td><td class='l name'>Sokolov</td><td>2</td><td>25</td><td>43:07</td><td>21:34</td><td>31:17</td><td>1:43</td><td>2:35</td><td>0:28</td></tr>
-<tr><td class='l num'>90</td><td class='l name'>Ivanov</td><td>2</td><td>22</td><td>42:26</td><td>21:13</td><td>30:06</td><td>1:56</td><td>3:00</td><td>0:55</td></tr>
-<tr><td class='l num'>26</td><td class='l name'>Babkin</td><td>2</td><td>24</td><td>41:43</td><td>20:52</td><td>30:53</td><td>1:44</td><td>3:26</td><td>0:23</td></tr>
-<tr><td class='l num'>31</td><td class='l name'>Vasyliev</td><td>2</td><td>19</td><td>41:32</td><td>20:46</td><td>32:27</td><td>2:11</td><td>3:33</td><td>0:38</td></tr>
-<tr><td class='l num'>61</td><td class='l name'>Prozhogin</td><td>1</td><td>11</td><td>20:35</td><td>20:35</td><td>15:08</td><td>1:52</td><td>3:00</td><td>1:10</td></tr>
-<tr><td class='l num'>82</td><td class='l name'>Podkorytov</td><td>2</td><td>21</td><td>40:47</td><td>20:24</td><td>30:31</td><td>1:57</td><td>2:46</td><td>1:17</td></tr>
-<tr><td class='l num'>18</td><td class='l name'>Petrov</td><td>2</td><td>21</td><td>39:51</td><td>19:56</td><td>31:43</td><td>1:54</td><td>3:26</td><td>0:57</td></tr>
-<tr><td class='l num'>89</td><td class='l name'>Olyanich</td><td>2</td><td>21</td><td>39:47</td><td>19:54</td><td>27:59</td><td>1:54</td><td>3:12</td><td>0:34</td></tr>
-<tr><td class='l num'>64</td><td class='l name'>Belov</td><td>2</td><td>22</td><td>39:44</td><td>19:52</td><td>27:46</td><td>1:48</td><td>2:40</td><td>1:04</td></tr>
-<tr><td class='l num'>14</td><td class='l name'>Radutskiy</td><td>1</td><td>10</td><td>18:18</td><td>18:18</td><td>14:00</td><td>1:50</td><td>3:00</td><td>0:34</td></tr></tbody></table></div>
-<p class="note">Sorted by ice time per game. Ice time is real elapsed time on the ice, including stoppages; play time counts only live play (estimated from the video).</p></section>
-</div></body></html>
+<section><h2>Season</h2><div class="tablebox"><table id="season"><thead><tr><th class="l" tabindex="0">#</th><th class="l" tabindex="0" data-text="1">Player</th><th tabindex="0">GP</th><th tabindex="0">Shifts</th><th tabindex="0">Ice time</th><th tabindex="0" aria-sort="descending">Per game</th><th tabindex="0">Play time</th><th tabindex="0">Avg shift</th><th tabindex="0">Longest</th><th tabindex="0">Shortest</th></tr></thead>
+<tbody><tr><td class='l num' data-v='13'>13</td><td class='l name' data-v='Belousenko'>Belousenko</td><td data-v='2.0'>2</td><td data-v='25.0'>25</td><td data-v='3930.0'>65:30</td><td data-v='1965.0'>32:45</td><td data-v='2918.0'>48:38</td><td data-v='157.2'>2:37</td><td data-v='233.0'>3:53</td><td data-v='85.0'>1:25</td></tr>
+<tr><td class='l num' data-v='74'>74</td><td class='l name' data-v='Bronnikov'>Bronnikov</td><td data-v='2.0'>2</td><td data-v='26.0'>26</td><td data-v='3430.0'>57:10</td><td data-v='1715.0'>28:35</td><td data-v='2680.0'>44:40</td><td data-v='131.92307692307693'>2:12</td><td data-v='207.0'>3:27</td><td data-v='20.0'>0:20</td></tr>
+<tr><td class='l num' data-v='78'>78</td><td class='l name' data-v='Shakhov'>Shakhov</td><td data-v='2.0'>2</td><td data-v='27.0'>27</td><td data-v='3191.0'>53:11</td><td data-v='1595.5'>26:36</td><td data-v='2253.0'>37:33</td><td data-v='118.18518518518519'>1:58</td><td data-v='189.0'>3:09</td><td data-v='39.0'>0:39</td></tr>
+<tr><td class='l num' data-v='12'>12</td><td class='l name' data-v='Kondratenko'>Kondratenko</td><td data-v='2.0'>2</td><td data-v='26.0'>26</td><td data-v='2981.0'>49:41</td><td data-v='1490.5'>24:50</td><td data-v='2208.0'>36:48</td><td data-v='114.65384615384616'>1:55</td><td data-v='175.0'>2:55</td><td data-v='43.0'>0:43</td></tr>
+<tr><td class='l num' data-v='33'>33</td><td class='l name' data-v='Nizamutdinov'>Nizamutdinov</td><td data-v='1.0'>1</td><td data-v='12.0'>12</td><td data-v='1298.0'>21:38</td><td data-v='1298.0'>21:38</td><td data-v='993.0'>16:33</td><td data-v='108.16666666666667'>1:48</td><td data-v='199.0'>3:19</td><td data-v='73.0'>1:13</td></tr>
+<tr><td class='l num' data-v='4'>4</td><td class='l name' data-v='Sokolov'>Sokolov</td><td data-v='2.0'>2</td><td data-v='25.0'>25</td><td data-v='2587.0'>43:07</td><td data-v='1293.5'>21:34</td><td data-v='1877.0'>31:17</td><td data-v='103.48'>1:43</td><td data-v='155.0'>2:35</td><td data-v='28.0'>0:28</td></tr>
+<tr><td class='l num' data-v='90'>90</td><td class='l name' data-v='Ivanov'>Ivanov</td><td data-v='2.0'>2</td><td data-v='22.0'>22</td><td data-v='2546.0'>42:26</td><td data-v='1273.0'>21:13</td><td data-v='1806.0'>30:06</td><td data-v='115.72727272727273'>1:56</td><td data-v='180.0'>3:00</td><td data-v='55.0'>0:55</td></tr>
+<tr><td class='l num' data-v='26'>26</td><td class='l name' data-v='Babkin'>Babkin</td><td data-v='2.0'>2</td><td data-v='24.0'>24</td><td data-v='2503.0'>41:43</td><td data-v='1251.5'>20:52</td><td data-v='1853.0'>30:53</td><td data-v='104.29166666666667'>1:44</td><td data-v='206.0'>3:26</td><td data-v='23.0'>0:23</td></tr>
+<tr><td class='l num' data-v='31'>31</td><td class='l name' data-v='Vasyliev'>Vasyliev</td><td data-v='2.0'>2</td><td data-v='19.0'>19</td><td data-v='2492.0'>41:32</td><td data-v='1246.0'>20:46</td><td data-v='1947.0'>32:27</td><td data-v='131.1578947368421'>2:11</td><td data-v='213.0'>3:33</td><td data-v='38.0'>0:38</td></tr>
+<tr><td class='l num' data-v='61'>61</td><td class='l name' data-v='Prozhogin'>Prozhogin</td><td data-v='1.0'>1</td><td data-v='11.0'>11</td><td data-v='1235.0'>20:35</td><td data-v='1235.0'>20:35</td><td data-v='908.0'>15:08</td><td data-v='112.27272727272727'>1:52</td><td data-v='180.0'>3:00</td><td data-v='70.0'>1:10</td></tr>
+<tr><td class='l num' data-v='82'>82</td><td class='l name' data-v='Podkorytov'>Podkorytov</td><td data-v='2.0'>2</td><td data-v='21.0'>21</td><td data-v='2447.0'>40:47</td><td data-v='1223.5'>20:24</td><td data-v='1831.0'>30:31</td><td data-v='116.52380952380952'>1:57</td><td data-v='166.0'>2:46</td><td data-v='77.0'>1:17</td></tr>
+<tr><td class='l num' data-v='18'>18</td><td class='l name' data-v='Petrov'>Petrov</td><td data-v='2.0'>2</td><td data-v='21.0'>21</td><td data-v='2391.0'>39:51</td><td data-v='1195.5'>19:56</td><td data-v='1903.0'>31:43</td><td data-v='113.85714285714286'>1:54</td><td data-v='206.0'>3:26</td><td data-v='57.0'>0:57</td></tr>
+<tr><td class='l num' data-v='89'>89</td><td class='l name' data-v='Olyanich'>Olyanich</td><td data-v='2.0'>2</td><td data-v='21.0'>21</td><td data-v='2387.0'>39:47</td><td data-v='1193.5'>19:54</td><td data-v='1679.0'>27:59</td><td data-v='113.66666666666667'>1:54</td><td data-v='192.0'>3:12</td><td data-v='34.0'>0:34</td></tr>
+<tr><td class='l num' data-v='64'>64</td><td class='l name' data-v='Belov'>Belov</td><td data-v='2.0'>2</td><td data-v='22.0'>22</td><td data-v='2384.0'>39:44</td><td data-v='1192.0'>19:52</td><td data-v='1666.0'>27:46</td><td data-v='108.36363636363636'>1:48</td><td data-v='160.0'>2:40</td><td data-v='64.0'>1:04</td></tr>
+<tr><td class='l num' data-v='14'>14</td><td class='l name' data-v='Radutskiy'>Radutskiy</td><td data-v='1.0'>1</td><td data-v='10.0'>10</td><td data-v='1098.0'>18:18</td><td data-v='1098.0'>18:18</td><td data-v='840.0'>14:00</td><td data-v='109.8'>1:50</td><td data-v='180.0'>3:00</td><td data-v='34.0'>0:34</td></tr></tbody></table></div>
+<p class="note">Click a column to sort. Ice time is real elapsed time on the ice, including stoppages; play time counts only live play (estimated from the video).</p></section>
+</div>
+<script>
+// sort the season table by any column; numbers compare by their data-v key, missing values always last
+(() => {
+  const t = document.getElementById("season"), ths = [...t.tHead.rows[0].cells], body = t.tBodies[0];
+  let col = 5, dir = -1;
+  const sort = () => {
+    const text = ths[col].dataset.text;
+    const rows = [...body.rows].sort((a, b) => {
+      const x = a.cells[col].dataset.v, y = b.cells[col].dataset.v;
+      if (x === "" || y === "") return (x === "") - (y === "");
+      return (text ? x.localeCompare(y) : x - y) * dir;
+    });
+    rows.forEach(r => body.appendChild(r));
+    ths.forEach((th, i) => th.setAttribute("aria-sort", i === col ? (dir < 0 ? "descending" : "ascending") : "none"));
+  };
+  ths.forEach((th, i) => {
+    const go = () => { dir = col === i ? -dir : (i < 2 ? 1 : -1); col = i; sort(); };
+    th.addEventListener("click", go);
+    th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+})();
+</script>
+</body></html>

@@ -1,0 +1,92 @@
+{
+ "schema": 1,
+ "team": {
+  "name": "LADA Turbo Kings",
+  "short_name": "Lada TK",
+  "lada_team_id": 24
+ },
+ "skaters": [
+  {
+   "number": 4,
+   "name": "Sokolov",
+   "lada_player_id": 11133
+  },
+  {
+   "number": 12,
+   "name": "Kondratenko",
+   "lada_player_id": 14209
+  },
+  {
+   "number": 13,
+   "name": "Belousenko",
+   "lada_player_id": 11131
+  },
+  {
+   "number": 14,
+   "name": "Radutskiy",
+   "lada_player_id": 11145
+  },
+  {
+   "number": 18,
+   "name": "Petrov",
+   "lada_player_id": 12165
+  },
+  {
+   "number": 26,
+   "name": "Babkin",
+   "lada_player_id": 19314
+  },
+  {
+   "number": 31,
+   "name": "Vasyliev",
+   "lada_player_id": 14210
+  },
+  {
+   "number": 33,
+   "name": "Nizamutdinov",
+   "lada_player_id": null
+  },
+  {
+   "number": 61,
+   "name": "Prozhogin",
+   "lada_player_id": 11138
+  },
+  {
+   "number": 64,
+   "name": "Belov",
+   "lada_player_id": 14208
+  },
+  {
+   "number": 74,
+   "name": "Bronnikov",
+   "lada_player_id": null
+  },
+  {
+   "number": 78,
+   "name": "Shakhov",
+   "lada_player_id": 12161
+  },
+  {
+   "number": 82,
+   "name": "Podkorytov",
+   "lada_player_id": 19315
+  },
+  {
+   "number": 89,
+   "name": "Olyanich",
+   "lada_player_id": 11140
+  },
+  {
+   "number": 90,
+   "name": "Ivanov",
+   "lada_player_id": 11144
+  }
+ ],
+ "goalies": [
+  {
+   "number": 58,
+   "name": "Fisenko",
+   "lada_player_id": 17285
+  }
+ ]
+}

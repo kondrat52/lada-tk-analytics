@@ -186,7 +186,10 @@ audio is silent, so the clips have no sound.
 $PY pipeline/run_game.py publish $W <YYYY-MM-DD>-vs-<opp> --opponent <OPP> --eyebrow "Sun Oct 4, 2026 · 7:50 PM · Renton" [--video-ends-early]
 ```
 
-This writes `games/<id>/game.json` + `shifts.csv` (with play time, stoppages and highlights) and rebuilds `docs/`.
+This writes `games/<id>/game.json` + `shifts.csv` (with play time, stoppages and highlights) and rebuilds `docs/`,
+including the JSON feed in `docs/api/` (see API.md). If you know the game's LADA API id or the opponent's full
+name, add `"lada_game_id"` / `"opponent_name"` to `game.json` and re-run `$PY pipeline/build_site.py`. For a new
+player, also add their LADA player id to `lada_player_ids` in `roster.json` if the user knows it.
 The clips live in `docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Open the page locally
 (`docs/games/<id>/index.html`) and look it over. Show the user the table and the notable fun stats,
 then ask before committing and pushing: the site is public. After pushing, check that the page is live (Pages
