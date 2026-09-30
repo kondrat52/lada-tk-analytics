@@ -1,6 +1,5 @@
 """Merge visual-review labels into segments (segs_v1.csv index == manifest seg_idx)."""
 import io, re, numpy as np, pandas as pd
-import shifts as SH
 
 W = {"high": 8, "med": 4}
 
@@ -27,8 +26,8 @@ def _endpoints(tr, tid, t0, t1):
     return dict(t0=f.t, t1=l.t, x0=f.fx, r0=f.rel, x1=l.fx, r1=l.rel)
 
 
-def apply(S, tr, review, manifest):
-    """S: segments (post-link, index = seg_idx). Returns new segment table with review labels:
+def apply(S, tr, review, manifest, R):
+    """S: segments (post-link, index = seg_idx); R: the rink (rink.py). Returns new segment table with review labels:
     columns num (label), nreads (weight), src ('ocr'|'review'), goalie flag rows removed."""
     S = S.copy(); S["src"] = np.where(S.num >= 0, "ocr", "")
     m = manifest.merge(review, on="row_id", how="inner")
@@ -70,6 +69,6 @@ def apply(S, tr, review, manifest):
     if new_rows:
         S = pd.concat([S, pd.DataFrame(new_rows)], ignore_index=True)
     S = S.drop(columns=[c for c in ["chain", "plabel"] if c in S.columns]).reset_index(drop=True)
-    S["bench0"] = (S.x0 > SH.BENCH_X[0]) & (S.x0 < SH.BENCH_X[1]) & (S.r0 < 15)
-    S["bench1"] = (S.x1 > SH.BENCH_X[0]) & (S.x1 < SH.BENCH_X[1]) & (S.r1 < 15)
+    S["bench0"] = R.at_bench(S.x0, S.r0)
+    S["bench1"] = R.at_bench(S.x1, S.r1)
     return S

@@ -1,17 +1,20 @@
 """Offline tracker for light-blue players (on ice + bench zone). Foot-point constant-velocity + Hungarian."""
 import os, numpy as np, pandas as pd, sys
 from scipy.optimize import linear_sum_assignment
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from rink import rink
 FPS = 8
 
 def load(path):
-    """path: dets.csv (may be a symlink). The far-boards curve boards_poly.npy (from boards.py) sits next to
-    the real file."""
-    P = np.load(os.path.join(os.path.dirname(os.path.realpath(path)), "boards_poly.npy"))
+    """path: dets.csv (may be a symlink). The far-boards curve boards_poly.npy (from boards.py) and rink.json
+    sit next to the real file."""
+    full = os.path.dirname(os.path.realpath(path))
+    P = np.load(os.path.join(full, "boards_poly.npy"))
     d = pd.read_csv(path, header=None, names="frame t x1 y1 x2 y2 conf blue white purple red dark lblue".split())
     d["i"] = d.groupby("frame").cumcount()
     d["fx"] = (d.x1 + d.x2) / 2; d["fy"] = d.y2; d["h"] = d.y2 - d.y1
     d["board"] = np.polyval(P, d.fx)
-    d["onice"] = d.fy > d.board + 5
+    d["onice"] = rink(full).onice(d.fx, d.fy - d.board)
     return d
 
 def track(d, max_lost=24, gate=1.0):
@@ -59,7 +62,8 @@ def track(d, max_lost=24, gate=1.0):
 
 if __name__ == "__main__":
     d = load(sys.argv[1])
-    lb = d[(d.blue >= 0.3) & (d.conf >= 0.3) & (d.onice | ((d.fx > 1300) & (d.fx < 1800) & (d.fy > d.board - 80)))]
+    R = rink(os.path.dirname(os.path.realpath(sys.argv[1])))
+    lb = d[(d.blue >= 0.3) & (d.conf >= 0.3) & (d.onice | R.bench_zone(d.fx, d.fy - d.board))]
     t = track(lb)
     L = t.groupby("tid").agg(n=("frame", "size"), f0=("frame", "min"), f1=("frame", "max"))
     L["dur"] = (L.f1 - L.f0 + 1) / FPS

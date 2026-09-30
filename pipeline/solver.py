@@ -30,7 +30,8 @@ def viterbi_all(on_cost, off_cost, trans):
 
 def solve(S, players, T, bench_events, target=None, iters=300, active=None,
           w_direct=3.0, w_prop=1.2, w_bench=1.5, tr_base=10.0, tr_bench=1.5):
-    """S: segments with t0,t1,plabel,num,nreads,bench0,bench1,r0,r1. T: number of 1s bins.
+    """S: segments with t0,t1,plabel,num,nreads,bench0,bench1,d0,d1 (bench depth at start/end, rink.py).
+    T: number of 1s bins.
     bench_events: array of times (s) of light-blue track starts/ends at the bench.
     target: (T,) desired skaters on ice (default 5). active: (T,) bool, bins where the game is live."""
     P = len(players); idx = {p: k for k, p in enumerate(players)}
@@ -40,9 +41,9 @@ def solve(S, players, T, bench_events, target=None, iters=300, active=None,
         a, b = int(np.floor(s.t0)), int(np.ceil(s.t1))
         w = w_direct * min(1.0, 0.4 + 0.2 * s.nreads) if s.num == s.plabel else w_prop
         off_c[k, a:b + 1] += w
-        if s.bench1 and s.r1 < 10:
+        if s.bench1 and s.d1 > -10:
             on_c[k, b + 3:b + 20] += w_bench
-        if s.bench0 and s.r0 < 10:
+        if s.bench0 and s.d0 > -10:
             on_c[k, max(a - 20, 0):max(a - 2, 0)] += w_bench
     trans = np.full(T, tr_base)
     for e in bench_events:

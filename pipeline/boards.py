@@ -1,12 +1,15 @@
 """boards.py FRAME.png OUTDIR : fit the far-boards (yellow kick plate) curve -> OUTDIR/boards_poly.npy.
 FRAME.png is a full-resolution frame from the wide-cut video (e.g. extracted with ffmpeg -ss 600 -frames:v 1).
 Players standing behind this curve are on the bench; below it they are on the ice."""
-import sys, cv2, numpy as np
+import sys, os, cv2, numpy as np
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from rink import rink
 img = cv2.imread(sys.argv[1]); out = sys.argv[2]
 H, W = img.shape[:2]
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 m = (hsv[..., 0] >= 18) & (hsv[..., 0] <= 35) & (hsv[..., 1] >= 90) & (hsv[..., 2] >= 110)
-y0, y1 = int(H * 0.41), int(H * 0.76)
+b0, b1 = rink(out).board_band
+y0, y1 = int(H * b0), int(H * b1)
 xs, ys = [], []
 for x in range(0, W, 20):
     col = np.where(m[y0:y1, x])[0]

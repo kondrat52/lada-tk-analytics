@@ -2,7 +2,7 @@
 Cut a zoomed highlight clip: a virtual camera follows the main cluster of players (from FULLDIR/dets.csv),
 crops the 4K wide cut to 16:9 and encodes 1280x720 H.264 with the game audio. Writes OUT.jpg as a poster
 frame (at POSTER_T, default the middle of the clip). FOCUS keeps the camera on part of the rink when players are
-spread out: a source x in px (540 = left net), or "track:TRACKS.csv:TID[,TID...]" to follow one player's track(s)
+spread out: a source x in px (rink.py nets, e.g. 540 = Renton's left net), or "track:TRACKS.csv:TID[,TID...]" to follow one player's track(s)
 (e.g. the player who took a penalty). The audio is left out when the recording's audio is silent."""
 import os, sys, subprocess
 import numpy as np, pandas as pd, cv2, imageio_ffmpeg
@@ -15,11 +15,11 @@ MIN_W, MAX_W = 900, 2800           # crop width range in source pixels
 FEET_AT = 0.56                       # players' skates sit this far down the frame
 
 
-def camera_path(full, t0, t1, focus=None):
-    """Per detection frame (8 fps): crop centre x/y and width, smoothed."""
+def camera_path(full, t0, t1, focus=None, max_w=MAX_W):
+    """Per detection frame (8 fps): crop centre x/y and width (at most max_w), smoothed."""
     d = load(f"{full}/dets.csv")
     d = d[(d.t >= t0 - 3) & (d.t <= t1 + 3) & (d.conf >= 0.3)]
-    d = d[d.fy > d.board + 5]
+    d = d[d.onice]
     grid = np.arange(0, 3840, 20)
     rows = []
     for t, g in d.groupby("t"):
@@ -37,7 +37,7 @@ def camera_path(full, t0, t1, focus=None):
             m = np.ones(len(xs), bool)
         spread = np.quantile(xs[m], 0.8) - np.quantile(xs[m], 0.2)
         # zoom to the core of the play, wider for near-camera players (they look bigger)
-        w = np.clip(1.15 * spread + 6 * np.median(hs[m]), MIN_W, MAX_W)
+        w = np.clip(1.15 * spread + 6 * np.median(hs[m]), MIN_W, max_w)
         feet = np.median(ys[m])
         if callable(focus) and fx is not None:
             near = np.abs(xs - fx) < 250
@@ -80,7 +80,7 @@ def main():
             focus = float(sys.argv[8])
     meta = next(imageio_ffmpeg.read_frames(video))
     W, H = meta["size"]; fps = meta["fps"]
-    P = camera_path(full, t0, t1, focus)
+    P = camera_path(full, t0, t1, focus, min(MAX_W, H * OUT_W / OUT_H))   # a 16:9 crop must fit the frame
     dec = subprocess.Popen([FF, "-nostdin", "-loglevel", "error", "-ss", str(t0), "-i", video, "-t", str(t1 - t0),
                             "-f", "rawvideo", "-pix_fmt", "bgr24", "-"], stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, bufsize=W * H * 3 * 2)
     enc_cmd = [FF, "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{OUT_W}x{OUT_H}",

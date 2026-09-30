@@ -10,6 +10,7 @@ Outputs:
 import os, sys, time, threading, queue, subprocess
 import numpy as np, cv2
 from ultralytics import YOLO
+from rink import rink
 
 import imageio_ffmpeg
 FF = imageio_ffmpeg.get_ffmpeg_exe()
@@ -18,8 +19,8 @@ START = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
 DUR = float(sys.argv[5]) if len(sys.argv) > 5 else None
 _meta = next(imageio_ffmpeg.read_frames(VID))
 W, FULL_H = _meta["size"]
-# rink band: the wide-cut camera shows ceiling above ~1/3 of the frame; keep far boards + ice
-Y0, Y1 = int(round(560 / 1702 * FULL_H)), FULL_H
+# rink band: the wide-cut camera shows ceiling above the far boards; keep far boards + ice
+Y0, Y1 = int(round(rink(OUT).crop_top * FULL_H)), FULL_H
 H = Y1 - Y0
 os.makedirs(f"{OUT}/crops", exist_ok=True); os.makedirs(f"{OUT}/ov", exist_ok=True)
 

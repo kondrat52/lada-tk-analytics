@@ -14,7 +14,8 @@ fair amount of tokens for the visual review. Keep the user posted with one line 
 ## 0. Ask up front (one message, then start)
 
 - The YouTube link (if not given) and the opponent's short name (e.g. RR).
-- Date and start time, rink (usually Renton) for the page header. The video title usually has them.
+- Date and start time, rink (usually Renton) for the page header. The video title usually has them, e.g.
+  "LTKvsTTT 5:55 PM PDT - SEP 13, 2026 (Snoqualmie) - wide cut".
 - Penalties we took: who and roughly when (period, minute). The video shows a penalty kill only as
   4 skaters, never who sat.
 - New or substitute players (number and surname). Later, unknown numbers on the roster card also need a name.
@@ -28,20 +29,30 @@ Don't wait for answers to start step 1; you need them from step 3 on.
 PY=~/.venvs/hockey/bin/python
 [ -x $PY ] || sh pipeline/setup_env.sh
 W=~/hockey-work/<YYYY-MM-DD>-vs-<opp>          # outside the repo; ~5 GB
-$PY pipeline/run_game.py fetch "<url>" $W       # run_in_background: true
+$PY pipeline/run_game.py fetch "<url>" $W --rink <renton|snoqualmie>   # run_in_background: true
 ```
+
+Each rink films from a different spot, so the camera geometry lives in `pipeline/rink.py` (detection crop, where
+the far boards are, our bench, nets). Renton has both benches behind the far boards. Snoqualmie has them on the
+near side at the frame edges, ours at the right. For a rink not in `rink.py`, stop before detection. Grab a frame,
+add a class (crop above the heads of players at the far boards, board band, ice polygon, bench line, nets), and
+check `boards.py`'s fit on the frame, because a wrong crop silently loses the far-side players.
 
 Fetch downloads the 4K video, calibrates the far boards, runs detection (it restarts itself from the last frame if
 the Mac slows down), then OCR, then writes `$W/periods.json` with proposed period windows. Watch
 `$W/full/log.txt` with a Monitor that also matches `Traceback|Error`. It is safe to re-run fetch after an
-interruption, because it resumes. Don't run anything heavy on the Mac meanwhile, since OCR or other jobs starve
+interruption, because it resumes. A background shell job stops after 2 hours, and detection plus OCR can take
+longer (1 h 46 min of detection at Snoqualmie). If the job is stopped, re-run fetch to finish. Don't run anything heavy on the Mac meanwhile, since OCR or other jobs starve
 the video decoder.
 
 ## 2. Confirm the periods
 
 Read `$W/break_*.jpg` (each break: the ice empties and both teams sit at their benches for about a minute) and
 `$W/video_end.jpg`. `periods.json` boundaries are usually right to within a few seconds. Fix any that aren't.
-`net` is where our goalie plays that period (540 = left, 3245 = right), and it switches each period. If the video
+`net` is where our goalie plays that period (`nets` in `rink.py`, e.g. Renton 540 = left, 3245 = right), and it
+switches each period. At Snoqualmie the arena scoreboard is in frame (x 1790-2070, y 262-378): a `frames` sheet
+of it every 30 s gives period clock, score, and the penalty panels with the player's number, so read it first.
+If the video
 ends before the final horn (play still going in `video_end.jpg`), remember to pass `--video-ends-early` when
 publishing.
 
@@ -122,9 +133,10 @@ This lists candidate goals: center-ice faceoffs that aren't period starts, and l
 center. A goal is always followed by a center faceoff. Check each candidate by eye:
 
 ```sh
-# full rink every 3 s over the minute before the faceoff
+# full rink every 3 s over the minute before the faceoff (Renton rows; Snoqualmie: y 380 1536)
 $PY pipeline/run_game.py frames $W $W/g.jpg 0 3840 700 1500 1000 2 <t-60> <t-57> ... <t>
-# zoom on a net, 1 s apart (left net x 150-1450, right net x 2500-3800)
+# zoom on a net, 1 s apart (Renton: left net x 150-1450, right net x 2500-3800;
+# Snoqualmie: y 380 760, left net x 200-1400, right net x 2600-3800)
 $PY pipeline/run_game.py frames $W $W/gz.jpg 150 1450 720 1070 660 3 <t1> <t2> ...
 ```
 

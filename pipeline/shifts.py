@@ -7,20 +7,20 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np, pandas as pd
 from track import load, track
 from reads import load_reads
+from rink import rink
 
 FPS = 8
-BENCH_X = (1340, 1760)          # light-blue bench door/boards span (4K px)
 from roster import SKATERS, GOALIES
 ROSTER = sorted(SKATERS)
 GOALIE = GOALIES[0] if GOALIES else -1
-LOOKALIKE = {frozenset(p) for p in [(18, 78), (13, 33), (12, 82), (13, 18), (89, 68), (74, 4), (26, 28)]}
+LOOKALIKE = {frozenset(p) for p in [(18, 78), (13, 33), (12, 82), (13, 18), (89, 68), (74, 4), (14, 4), (26, 28)]}
 
 
-def goalie_zone(d, nets):
+def goalie_zone(d, nets, R):
     """nets: list of (t0, t1, net_x). Drops detections standing in the light-blue crease."""
     drop = np.zeros(len(d), bool)
     for t0, t1, nx in nets:
-        drop |= (d.t >= t0) & (d.t < t1) & (np.abs(d.fx - nx) < 110) & (d.rel > 0) & (d.rel < 75)
+        drop |= (d.t >= t0) & (d.t < t1) & R.in_crease(d.fx, d.rel, nx)
     return d[~drop]
 
 
@@ -72,12 +72,12 @@ def segment_track(reads):
 
 
 def build(outdir, tmax, nets, tmin=0.0):
+    R = rink(outdir)
     d = load(f"{outdir}/dets.csv")
     d = d[(d.t >= tmin) & (d.t <= tmax)]
     d["rel"] = d.fy - d.board
-    lb = d[(d.blue >= 0.3) & (d.conf >= 0.3) &
-           (d.onice | ((d.fx > 1300) & (d.fx < 1800) & (d.rel > -80)))]
-    lb = goalie_zone(lb, nets)
+    lb = d[(d.blue >= 0.3) & (d.conf >= 0.3) & (d.onice | R.bench_zone(d.fx, d.rel))]
+    lb = goalie_zone(lb, nets, R)
     t = track(lb)
     dig, _ = load_reads(outdir)
     dig = dig.merge(t[["frame", "i", "tid", "t"]], on=["frame", "i"])
@@ -107,20 +107,21 @@ def build(outdir, tmax, nets, tmin=0.0):
             segs.append(dict(tid=k, t0=f.t, t1=l.t, num=n, nreads=c,
                              x0=f.fx, r0=f.rel, x1=l.fx, r1=l.rel))
     S = pd.DataFrame(segs)
-    S["bench0"] = (S.x0 > BENCH_X[0]) & (S.x0 < BENCH_X[1]) & (S.r0 < 15)
-    S["bench1"] = (S.x1 > BENCH_X[0]) & (S.x1 < BENCH_X[1]) & (S.r1 < 15)
+    S["bench0"] = R.at_bench(S.x0, S.r0)
+    S["bench1"] = R.at_bench(S.x1, S.r1)
     return t, S
 
 
-def link(S, max_gap=2.5):
+def link(S, R, max_gap=2.5):
     """Chain unlabeled segments to neighbours: end of A -> start of B, short gap, close position.
-    Returns S with 'chain' ids; labels propagate within a chain when unambiguous."""
+    Returns S with 'chain' ids; labels propagate within a chain when unambiguous. R: the rink (rink.py)."""
     S = S.sort_values("t0").reset_index(drop=True)
+    behind = np.asarray(R.bench_depth(S.x1, S.r1)) > 10
     nxt = {}
     ends = S.sort_values("t1")
     taken = set()
     for i, a in ends.iterrows():
-        if a.bench1 and a.r1 < -10:
+        if a.bench1 and behind[i]:
             continue  # went behind the boards
         cand = S[(S.t0 > a.t1 - 0.2) & (S.t0 < a.t1 + max_gap) & (~S.index.isin(taken)) & (S.index != i)]
         if len(cand) == 0:
@@ -182,7 +183,7 @@ if __name__ == "__main__":
     out, tmax = sys.argv[1], float(sys.argv[2])
     nets = json.loads(sys.argv[3]) if len(sys.argv) > 3 else [(0, 1e9, 540)]
     t, S = build(out, tmax, nets)
-    S = link(S)
+    S = link(S, rink(out))
     t.to_csv(f"{out}/tracks_v1.csv", index=False); S.to_csv(f"{out}/segs_v1.csv", index=False)
     R = shifts_from(S)
     R.to_csv(f"{out}/shifts_v1.csv", index=False)

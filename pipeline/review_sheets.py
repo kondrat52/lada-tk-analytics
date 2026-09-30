@@ -3,6 +3,8 @@ Pick segments needing visual review and render sheets: one row per segment, crop
 Writes REVDIR/sheet_XXX.jpg and REVDIR/manifest.csv (sheet,row_id,seg_idx,tid,t0,t1,crop_times)."""
 import sys, os, subprocess, numpy as np, pandas as pd
 here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, here)
+from rink import rink
 out, rev = sys.argv[1], sys.argv[2]
 per_sheet = int(sys.argv[3]) if len(sys.argv) > 3 else 8
 NC = 10
@@ -15,8 +17,9 @@ sg["dur"] = sg.t1 - sg.t0
 # review: anything >= 3 s that is not strongly and unambiguously read, plus all long segments (swap check)
 multi = sg.groupby("tid").num.transform(lambda s: s[s >= 0].nunique())
 need = (sg.dur >= 3) & ((sg.num < 0) | (sg.nreads < 6) | (multi > 1) | (sg.dur >= 25))
-medrel = tr.groupby("tid").rel.median()
-onice = sg.tid.map(medrel) > -15   # skip people sitting behind the bench boards
+tr["depth"] = rink(out).bench_depth(tr.fx, tr.rel)
+meddepth = tr.groupby("tid").depth.median()
+onice = sg.tid.map(meddepth) < 15   # skip people sitting behind the bench boards
 cand = sg[need & onice].sort_values("t0")
 rows = []
 for idx, s in cand.iterrows():

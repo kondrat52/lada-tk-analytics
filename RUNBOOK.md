@@ -26,11 +26,14 @@ $PY -m yt_dlp -f 313 -o "$W/video.webm" "https://youtu.be/VIDEO_ID"   # 313 = 21
 ```sh
 FF=$($PY -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())")
 $FF -loglevel error -ss 600 -i $W/video.webm -frames:v 1 $W/frame600.png
+echo '{"rink": "snoqualmie"}' > $W/full/rink.json   # not for Renton, the default
 $PY pipeline/boards.py $W/frame600.png $W/full     # writes boards_poly.npy
 ```
 
-Check the benches are where `shifts.py` expects them (`BENCH_X = (1340, 1760)`, our bench left of center on the
-far side) by viewing a crop of the frame. If the camera moved, adjust `BENCH_X`.
+The camera geometry per rink (detection crop, board band, ice area, our bench, nets) lives in `pipeline/rink.py`.
+Check the fitted boards line on the frame, and that the benches are where the rink's class expects them, by viewing
+a crop of the frame. If the camera moved, or it's a new rink, adjust or add a class there before detecting: the
+detection crop (`crop_top`) must include the heads of players standing at the far boards.
 
 ## 3. Detect (~80 min on an M3)
 
@@ -56,7 +59,8 @@ $PY pipeline/ovsheet.py $W/full/ov $W/ov.jpg 0 4000 30 3
 ```
 
 Breaks show the ice empty with both teams at the benches for about a minute. Our goalie switches ends each
-period. Net x ≈ 540 (left) or ≈ 3245 (right). Narrow each break down to the second with finer sheets.
+period. Net x: see `nets` in `pipeline/rink.py` (Renton ≈ 540 left, ≈ 3245 right). Narrow each break down to the
+second with finer sheets.
 Ask about penalties: who, and roughly when. A penalty kill shows up as 4 of our skaters on the ice.
 
 ## 6. Track each period

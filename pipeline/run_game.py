@@ -1,13 +1,14 @@
 """Driver for processing one game. Run with the hockey env's python (see setup_env.sh).
 
-  run_game.py fetch   URL W [--limit SEC]   download, calibrate, detect (auto-restart), OCR, propose periods
+  run_game.py fetch   URL W [--rink NAME] [--limit SEC]   download, calibrate, detect (auto-restart), OCR,
+                                             propose periods; --rink: camera geometry from rink.py (renton)
   run_game.py skaters W T0 T1               our skaters detected on the ice per 5 s (find penalty kills)
   run_game.py prepare W                      per period: tracking, review sheets, roster card
   run_game.py solve   W                      per period: apply reviews + solve; gantt charts; stats table
   run_game.py goals   W                      candidate goals: center-ice faceoffs + long stoppages (verify by eye)
   run_game.py frames  W OUT.jpg X0 X1 Y0 Y1 TILE_W COLS t1 t2 ...   4K frames (cropped) as a sheet, for verifying
   run_game.py clip    W GAME_ID NAME T0 T1 POSTER_T [FOCUS]          zoomed clip into docs/games/<id>/clips;
-                                             FOCUS = x px (540 left net) or #N to follow player N
+                                             FOCUS = x px (a net x from rink.py) or #N to follow player N
   run_game.py publish W GAME_ID --opponent RR --eyebrow "Sun Sep 27, 2026 · 7:50 PM · Renton" [--date ...]
 
 W is the per-game work folder (outside the repo). Every step skips work that is already done, so re-running
@@ -21,8 +22,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 PY = sys.executable
 FPS = 8
-NET_LEFT, NET_RIGHT = 540, 3245
 sys.path.insert(0, HERE)
+from rink import rink
 
 
 def sh(*args, **kw):
@@ -125,15 +126,31 @@ def detect(vid, W, limit=None):
             log(f"process.py exited with {proc.returncode}; restarting from the last frame")
 
 
+def ocr_skip(W):
+    """Crops of people sitting deep in our bench (rink.ocr_skip_depth), listed in ocr_done_bench.txt so the OCR
+    workers pass over them: those tracks are dropped as bench sitters, so their reads are never used."""
+    from track import load
+    full = f"{W}/full"; R = rink(full)
+    if R.ocr_skip_depth is None:
+        return
+    d = load(f"{full}/dets.csv")
+    deep = d[np.asarray(R.bench_depth(d.fx, d.fy - d.board)) > R.ocr_skip_depth]
+    crops = set(os.listdir(f"{full}/crops"))
+    names = [n for n in (f"f{f:06d}_{i:02d}.jpg" for f, i in zip(deep.frame, deep.i)) if n in crops]
+    open(f"{full}/ocr_done_bench.tmp", "w").write("\n".join(names) + "\n")
+    os.replace(f"{full}/ocr_done_bench.tmp", f"{full}/ocr_done_bench.txt")
+
+
 def ocr(W):
     full = f"{W}/full"
-    n_crops = len(os.listdir(f"{full}/crops"))
+    ocr_skip(W)
+    crops = set(os.listdir(f"{full}/crops"))
     done = set()
     for p in glob.glob(f"{full}/ocr_done_*.txt"):
         done |= set(open(p).read().split())
-    if len(done) >= n_crops:
+    if not crops - done:
         return
-    log(f"OCR on {n_crops - len(done)} crops (4 workers)")
+    log(f"OCR on {len(crops - done)} crops (4 workers)")
     env = dict(os.environ, PYTHONHASHSEED="0")
     ps = [subprocess.Popen([PY, f"{HERE}/ocr_worker.py", full, "1000000000", "1", str(k), "4"], env=env,
                            stdout=open(f"{full}/ocr_log_{k}.txt", "w"), stderr=subprocess.STDOUT) for k in range(4)]
@@ -142,12 +159,13 @@ def ocr(W):
 
 
 def propose_periods(W):
-    """Breaks = 25+ seconds with nobody out on the ice. Our goalie's net side per period from light-blue
+    """Breaks = min_break+ seconds (rink.py) with nobody out on the open ice. Our goalie's net side per period from light-blue
     detections standing in each crease."""
     from track import load
+    R = rink(f"{W}/full")
     d = load(f"{W}/full/dets.csv"); d["rel"] = d.fy - d.board
     T = int(d.t.max()) + 1
-    out = d[(d.rel > 60) & (d.conf >= 0.3)]
+    out = d[R.open_ice(d.fx, d.rel) & (d.conf >= 0.3)]
     act = np.bincount(out.t.astype(int), minlength=T) / FPS
     act = pd.Series(act).rolling(5, center=True, min_periods=1).median().values
     empty = act < 0.5
@@ -157,7 +175,7 @@ def propose_periods(W):
         if e and s is None:
             s = t
         if not e and s is not None:
-            if t - s >= 25:
+            if t - s >= R.min_break:
                 spans.append((s, t))
             s = None
     edges = [0] + [x for b in spans for x in b] + [T]
@@ -165,12 +183,12 @@ def propose_periods(W):
     for a, b in zip(edges[0::2], edges[1::2]):
         if b - a >= 240:
             periods.append([a, b])
-    blue = d[(d.blue >= 0.3) & (d.rel > 0) & (d.rel < 75)]
+    blue = d[d.blue >= 0.3]
     res = []
     for k, (a, b) in enumerate(periods, 1):
         w = blue[(blue.t >= a) & (blue.t < b)]
-        nl = ((w.fx - NET_LEFT).abs() < 110).sum(); nr = ((w.fx - NET_RIGHT).abs() < 150).sum()
-        res.append(dict(label=f"P{k}", start=int(a), end=int(b), net=NET_LEFT if nl >= nr else NET_RIGHT, pk=[]))
+        nl, nr = (R.in_crease(w.fx, w.rel, R.nets[s]).sum() for s in ("left", "right"))
+        res.append(dict(label=f"P{k}", start=int(a), end=int(b), net=R.nets["left" if nl >= nr else "right"], pk=[]))
     json.dump(res, open(f"{W}/periods.json", "w"), indent=2)
     for k in range(len(res) - 1):
         a, b = res[k]["end"], res[k + 1]["start"]
@@ -181,6 +199,11 @@ def propose_periods(W):
 
 def cmd_fetch(a):
     W = os.path.abspath(a.W); os.makedirs(f"{W}/full", exist_ok=True)
+    if a.rink:
+        from rink import RINKS
+        if a.rink not in RINKS:
+            sys.exit(f"unknown rink {a.rink}; known: {', '.join(RINKS)}")
+        json.dump({"rink": a.rink}, open(f"{W}/full/rink.json", "w"))
     vid = download(a.url, W)
     download_audio(a.url, W)
     calibrate(vid, W)
@@ -206,8 +229,8 @@ def cmd_skaters(a):
         t = pd.concat(tr)
     else:  # before prepare: raw light-blue detections on the ice
         from track import load
-        t = load(f"{a.W}/full/dets.csv"); t["rel"] = t.fy - t.board; t = t[t.blue >= 0.3]
-    t = t[(t.t >= a.T0) & (t.t < a.T1) & (t.rel > 5)]
+        t = load(f"{a.W}/full/dets.csv"); t = t[t.blue >= 0.3]
+    t = t[(t.t >= a.T0) & (t.t < a.T1) & t.onice]
     c = t.groupby([(t.t // 5).astype(int) * 5, "frame"]).size().groupby(level=0).quantile(0.75)
     print("our skaters on the ice (75th pct per 5 s; includes the goalie before prepare):")
     print(" ".join(f"{int(k) // 60}:{int(k) % 60:02d}={v:.0f}" for k, v in c.items()))
@@ -216,7 +239,7 @@ def cmd_skaters(a):
 def _skater_speed(W):
     """Median speed of our tracked skaters per second, in body-heights/s (low = stoppage)."""
     tr = pd.concat([pd.read_csv(f"{W}/{P['label'].lower()}/tracks_v1.csv") for P in periods(W)])
-    tr = tr[tr.rel > 5].sort_values(["tid", "frame"])
+    tr = tr[tr.onice].sort_values(["tid", "frame"])
     tr["v"] = np.hypot(tr.groupby("tid").fx.diff(), tr.groupby("tid").fy.diff()) / tr.h * FPS
     tr.loc[tr.groupby("tid").frame.diff() != 1, "v"] = np.nan
     T = int(tr.t.max()) + 1
@@ -228,11 +251,12 @@ def cmd_goals(a):
     starts, and every long stoppage with where play restarted. Each needs checking by eye (frames command)."""
     from track import load
     W = os.path.abspath(a.W)
-    d = load(f"{W}/full/dets.csv"); d = d[(d.fy > d.board + 5) & (d.conf >= 0.3)]
+    R = rink(f"{W}/full")
+    d = load(f"{W}/full/dets.csv"); d = d[d.onice & (d.conf >= 0.3)]
     g = d.groupby("frame").agg(t=("t", "first"), n=("fx", "size"), mx=("fx", "median"),
                                q2=("fx", lambda s: s.quantile(.2)), q8=("fx", lambda s: s.quantile(.8)))
     s = g.assign(sx=g.q8 - g.q2).groupby(g.t.astype(int)).agg(n=("n", "median"), mx=("mx", "median"), sx=("sx", "median"))
-    center = 1880
+    center = R.center_x
     sp = _skater_speed(W)
     Ps = periods(W)
     starts = [P["start"] for P in Ps]
@@ -249,12 +273,12 @@ def cmd_goals(a):
         if st is not None and t - st >= 18 and label(st) != "break":
             w = s.loc[t - 6:t + 1]
             rx = w.mx.median()
-            where = "CENTER ice" if abs(rx - center) < 250 else ("left end" if rx < 1500 else "right end")
+            where = "CENTER ice" if abs(rx - center) < 250 else ("left end" if rx < center - 380 else "right end")
             near_start = any(abs(st - x) < 45 for x in starts)
             hint = "  <- goal? (center restart)" if where == "CENTER ice" and not near_start else ""
             # where was play just before it stopped?
             before = d[(d.t >= st - 6) & (d.t < st)].fx.median()
-            side = "left net" if before < 1300 else ("right net" if before > 2500 else "mid-ice")
+            side = "left net" if before < center - 580 else ("right net" if before > center + 620 else "mid-ice")
             print(f"  {st // 60}:{st % 60:02d}-{t // 60}:{t % 60:02d} {label(st)}: play stopped near {side}, "
                   f"restart at {where}{hint}")
         st = None
@@ -269,7 +293,7 @@ def cmd_goals(a):
         if st is not None and t - st >= 3 and label(st) != "break" and not any(abs(st - x) < 45 for x in starts):
             print(f"  {st // 60}:{st % 60:02d} {label(st)}  <- look at the 60 s before it")
         st = None
-    print("Our net per period:", {P["label"]: ("left" if P["net"] < 1900 else "right") for P in Ps})
+    print("Our net per period:", {P["label"]: ("left" if P["net"] < center else "right") for P in Ps})
     print("Verify each with frames (full rink every 3 s, then zoom on the net): a goal shows a crowd at a net, the "
           "referee pointing at it, and one team celebrating before the center faceoff.")
 
@@ -381,6 +405,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     f = sub.add_parser("fetch"); f.add_argument("url"); f.add_argument("W"); f.add_argument("--limit", type=float)
+    f.add_argument("--rink", help="camera geometry (see rink.py); default renton")
     s = sub.add_parser("skaters"); s.add_argument("W"); s.add_argument("T0", type=float); s.add_argument("T1", type=float)
     sub.add_parser("prepare").add_argument("W")
     sub.add_parser("goals").add_argument("W")

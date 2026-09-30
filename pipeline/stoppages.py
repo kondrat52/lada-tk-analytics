@@ -19,7 +19,7 @@ STILL, BURST, LIVE_PACE, MAX_STOP = 0.6, 1.0, 1.9, 75
 def speed_per_second(full):
     """75th percentile skating speed (body-heights/s) of everyone on the ice, per second."""
     d = load(f"{full}/dets.csv")
-    d = d[(d.fy > d.board + 5) & (d.conf >= 0.3)]
+    d = d[d.onice & (d.conf >= 0.3)]
     fr = {f: g[["fx", "fy", "h"]].values for f, g in d.groupby("frame")}
     rows = []
     for f, a in fr.items():
