@@ -1,0 +1,215 @@
+{
+  "id": "2026-09-13-vs-ttt",
+  "date": "2026-09-13",
+  "title": "Lada TK vs TTT, Sep 13",
+  "eyebrow": "Sun Sep 13, 2026 · 5:55 PM · Snoqualmie",
+  "opponent": "TTT",
+  "video": "https://www.youtube.com/watch?v=omxqMN889KI",
+  "periods": [
+    {
+      "label": "P1",
+      "start": 5,
+      "end": 1086
+    },
+    {
+      "label": "P2",
+      "start": 1182,
+      "end": 2290
+    },
+    {
+      "label": "P3",
+      "start": 2390,
+      "end": 3724
+    }
+  ],
+  "nets": {
+    "P1": 3260,
+    "P2": 630,
+    "P3": 3260
+  },
+  "penalty_kills": [
+    {
+      "period": "P2",
+      "start": 1535,
+      "end": 1738,
+      "player": 74
+    }
+  ],
+  "notes": [
+    "Played at Snoqualmie, where the camera films from a different spot than at Renton (both benches on the near side), so the pipeline now has per-rink camera geometry (pipeline/rink.py).",
+    "Period times, goals and the penalty were read off the arena scoreboard, which is in frame at Snoqualmie. Lada TK was GUEST. Shots on goal: Lada TK 37, TTT 14.",
+    "Penalty kill from 25:35 to 28:58 of the video (Bronnikov #74 in the box for 3:00), solved with 4 skaters on the ice."
+  ],
+  "video_ends_early": false,
+  "fun": {
+    "name_reads": {
+      "13": 1337,
+      "4": 1133,
+      "31": 1008,
+      "78": 845,
+      "89": 623,
+      "74": 581,
+      "14": 529,
+      "82": 465,
+      "90": 422,
+      "26": 377,
+      "12": 349,
+      "64": 326,
+      "18": 183
+    }
+  },
+  "pipeline": {
+    "detections": 828783,
+    "crops": 268304,
+    "reads": 21240,
+    "reviewed": 478
+  },
+  "stoppages": [
+    [
+      5,
+      46
+    ],
+    [
+      60,
+      90
+    ],
+    [
+      90,
+      96
+    ],
+    [
+      118,
+      152
+    ],
+    [
+      191,
+      198
+    ],
+    [
+      305,
+      325
+    ],
+    [
+      496,
+      518
+    ],
+    [
+      549,
+      571
+    ],
+    [
+      684,
+      763
+    ],
+    [
+      798,
+      818
+    ],
+    [
+      843,
+      873
+    ],
+    [
+      873,
+      906
+    ],
+    [
+      1007,
+      1036
+    ],
+    [
+      1182,
+      1185
+    ],
+    [
+      1296,
+      1357
+    ],
+    [
+      1409,
+      1439
+    ],
+    [
+      1510,
+      1558
+    ],
+    [
+      1635,
+      1658
+    ],
+    [
+      1658,
+      1696
+    ],
+    [
+      1724,
+      1755
+    ],
+    [
+      1755,
+      1795
+    ],
+    [
+      2241,
+      2268
+    ],
+    [
+      2477,
+      2514
+    ],
+    [
+      2699,
+      2721
+    ],
+    [
+      2763,
+      2852
+    ],
+    [
+      2997,
+      3023
+    ],
+    [
+      3209,
+      3242
+    ],
+    [
+      3554,
+      3582
+    ]
+  ],
+  "highlights": [
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 730,
+      "clip": "clips/goal-1.mp4",
+      "poster": "clips/goal-1.jpg",
+      "note": "Scramble at their net"
+    },
+    {
+      "type": "penalty",
+      "player": 74,
+      "t": 1514,
+      "clip": "clips/penalty-74.mp4",
+      "poster": "clips/penalty-74.jpg",
+      "note": "Called in the scramble at their net; we killed it"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 1765,
+      "clip": "clips/goal-2.mp4",
+      "poster": "clips/goal-2.jpg",
+      "note": "Off a zone faceoff, half a minute after the penalty kill"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 2639,
+      "clip": "clips/goal-3.mp4",
+      "poster": "clips/goal-3.jpg",
+      "note": "#82 drives the net"
+    }
+  ]
+}
