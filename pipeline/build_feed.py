@@ -94,6 +94,18 @@ def game_doc(game, A, players, highlights):
     }
 
 
+def _per_game(docs_by_game, games):
+    """number -> [{id, date, opponent, toi, shifts, avg_shift, play}], newest game first."""
+    out = {}
+    for g in sorted(games, key=lambda g: g["date"], reverse=True):
+        doc = docs_by_game[g["id"]]
+        for p in doc["players"]:
+            out.setdefault(p["number"], []).append({
+                "id": g["id"], "date": g["date"], "opponent": doc["opponent"],
+                "toi": p["toi"], "shifts": p["shifts"], "avg_shift": p["avg_shift"], "play": p["play"]})
+    return out
+
+
 def write_feed(root, games, docs_by_game, season):
     api = f"{root}/docs/api"
     os.makedirs(f"{api}/games", exist_ok=True)
@@ -114,11 +126,13 @@ def write_feed(root, games, docs_by_game, season):
                   for g in ordered],
     }
     json.dump(index, open(f"{api}/index.json", "w"), ensure_ascii=False, indent=1)
+    per_game = _per_game(docs_by_game, games)
     season_doc = {
         "schema": SCHEMA, "team": _team(), "updated": updated, "games": [g["id"] for g in ordered],
         "players": [{**_player(p), "games_played": int(r.gp), "shifts": int(r.shifts), "toi": _num(r.toi),
                      "toi_per_game": _num(r.toi_gp), "play": _num(r.play) if r.play > 0 else None,
-                     "avg_shift": _num(r.avg), "longest_shift": _num(r.longest), "shortest_shift": _num(r.shortest)}
+                     "avg_shift": _num(r.avg), "longest_shift": _num(r.longest), "shortest_shift": _num(r.shortest),
+                     "games": per_game.get(int(p), [])}
                     for p, r in season.iterrows()],
     }
     json.dump(season_doc, open(f"{api}/season.json", "w"), ensure_ascii=False, indent=1)

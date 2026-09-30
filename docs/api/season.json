@@ -22,7 +22,33 @@
    "play": 2918,
    "avg_shift": 157.2,
    "longest_shift": 233,
-   "shortest_shift": 85
+   "shortest_shift": 85,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1849,
+     "shifts": 12,
+     "avg_shift": 154.1,
+     "play": 1399
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 2081,
+     "shifts": 13,
+     "avg_shift": 160.1,
+     "play": 1519
+    }
+   ]
   },
   {
    "number": 74,
@@ -35,7 +61,33 @@
    "play": 2680,
    "avg_shift": 131.9,
    "longest_shift": 207,
-   "shortest_shift": 20
+   "shortest_shift": 20,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1549,
+     "shifts": 12,
+     "avg_shift": 129.1,
+     "play": 1221
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1881,
+     "shifts": 14,
+     "avg_shift": 134.4,
+     "play": 1459
+    }
+   ]
   },
   {
    "number": 78,
@@ -48,7 +100,33 @@
    "play": 2253,
    "avg_shift": 118.2,
    "longest_shift": 189,
-   "shortest_shift": 39
+   "shortest_shift": 39,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1595,
+     "shifts": 13,
+     "avg_shift": 122.7,
+     "play": 1093
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1596,
+     "shifts": 14,
+     "avg_shift": 114,
+     "play": 1160
+    }
+   ]
   },
   {
    "number": 12,
@@ -61,7 +139,33 @@
    "play": 2208,
    "avg_shift": 114.7,
    "longest_shift": 175,
-   "shortest_shift": 43
+   "shortest_shift": 43,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1553,
+     "shifts": 12,
+     "avg_shift": 129.4,
+     "play": 1161
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1428,
+     "shifts": 14,
+     "avg_shift": 102,
+     "play": 1047
+    }
+   ]
   },
   {
    "number": 33,
@@ -74,7 +178,21 @@
    "play": 993,
    "avg_shift": 108.2,
    "longest_shift": 199,
-   "shortest_shift": 73
+   "shortest_shift": 73,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1298,
+     "shifts": 12,
+     "avg_shift": 108.2,
+     "play": 993
+    }
+   ]
   },
   {
    "number": 4,
@@ -87,7 +205,33 @@
    "play": 1877,
    "avg_shift": 103.5,
    "longest_shift": 155,
-   "shortest_shift": 28
+   "shortest_shift": 28,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1148,
+     "shifts": 13,
+     "avg_shift": 88.3,
+     "play": 827
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1439,
+     "shifts": 12,
+     "avg_shift": 119.9,
+     "play": 1050
+    }
+   ]
   },
   {
    "number": 90,
@@ -100,7 +244,33 @@
    "play": 1806,
    "avg_shift": 115.7,
    "longest_shift": 180,
-   "shortest_shift": 55
+   "shortest_shift": 55,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1398,
+     "shifts": 12,
+     "avg_shift": 116.5,
+     "play": 957
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1148,
+     "shifts": 10,
+     "avg_shift": 114.8,
+     "play": 849
+    }
+   ]
   },
   {
    "number": 26,
@@ -113,7 +283,33 @@
    "play": 1853,
    "avg_shift": 104.3,
    "longest_shift": 206,
-   "shortest_shift": 23
+   "shortest_shift": 23,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1264,
+     "shifts": 13,
+     "avg_shift": 97.2,
+     "play": 942
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1239,
+     "shifts": 11,
+     "avg_shift": 112.6,
+     "play": 911
+    }
+   ]
   },
   {
    "number": 31,
@@ -126,7 +322,33 @@
    "play": 1947,
    "avg_shift": 131.2,
    "longest_shift": 213,
-   "shortest_shift": 38
+   "shortest_shift": 38,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1253,
+     "shifts": 9,
+     "avg_shift": 139.2,
+     "play": 958
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1239,
+     "shifts": 10,
+     "avg_shift": 123.9,
+     "play": 989
+    }
+   ]
   },
   {
    "number": 61,
@@ -139,7 +361,21 @@
    "play": 908,
    "avg_shift": 112.3,
    "longest_shift": 180,
-   "shortest_shift": 70
+   "shortest_shift": 70,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1235,
+     "shifts": 11,
+     "avg_shift": 112.3,
+     "play": 908
+    }
+   ]
   },
   {
    "number": 82,
@@ -152,7 +388,33 @@
    "play": 1831,
    "avg_shift": 116.5,
    "longest_shift": 166,
-   "shortest_shift": 77
+   "shortest_shift": 77,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1350,
+     "shifts": 12,
+     "avg_shift": 112.5,
+     "play": 1026
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1097,
+     "shifts": 9,
+     "avg_shift": 121.9,
+     "play": 805
+    }
+   ]
   },
   {
    "number": 18,
@@ -165,7 +427,33 @@
    "play": 1903,
    "avg_shift": 113.9,
    "longest_shift": 206,
-   "shortest_shift": 57
+   "shortest_shift": 57,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1184,
+     "shifts": 10,
+     "avg_shift": 118.4,
+     "play": 926
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1207,
+     "shifts": 11,
+     "avg_shift": 109.7,
+     "play": 977
+    }
+   ]
   },
   {
    "number": 89,
@@ -178,7 +466,33 @@
    "play": 1679,
    "avg_shift": 113.7,
    "longest_shift": 192,
-   "shortest_shift": 34
+   "shortest_shift": 34,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1336,
+     "shifts": 11,
+     "avg_shift": 121.5,
+     "play": 968
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1051,
+     "shifts": 10,
+     "avg_shift": 105.1,
+     "play": 711
+    }
+   ]
   },
   {
    "number": 64,
@@ -191,7 +505,33 @@
    "play": 1666,
    "avg_shift": 108.4,
    "longest_shift": 160,
-   "shortest_shift": 64
+   "shortest_shift": 64,
+   "games": [
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1243,
+     "shifts": 11,
+     "avg_shift": 113,
+     "play": 919
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1141,
+     "shifts": 11,
+     "avg_shift": 103.7,
+     "play": 747
+    }
+   ]
   },
   {
    "number": 14,
@@ -204,7 +544,21 @@
    "play": 840,
    "avg_shift": 109.8,
    "longest_shift": 180,
-   "shortest_shift": 34
+   "shortest_shift": 34,
+   "games": [
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1098,
+     "shifts": 10,
+     "avg_shift": 109.8,
+     "play": 840
+    }
+   ]
   }
  ]
 }

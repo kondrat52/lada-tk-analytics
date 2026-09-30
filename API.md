@@ -68,7 +68,8 @@ before the final horn (`video_ends_early` in the game file).
 ## `season.json`
 
 `players[]` sorted by ice time per game: `{number, name, lada_player_id, games_played, shifts, toi, toi_per_game,
-play, avg_shift, longest_shift, shortest_shift}`.
+play, avg_shift, longest_shift, shortest_shift, games[]}`. `games[]` lists that player's games, newest first:
+`{id, date, opponent: {code, name}, toi, shifts, avg_shift, play}`.
 
 ## `roster.json`
 
