@@ -2,7 +2,7 @@
  "schema": 1,
  "team": {
   "name": "LADA Turbo Kings",
-  "short_name": "Lada TK",
+  "short_name": "LTK",
   "lada_team_id": 24
  },
  "skaters": [
@@ -19,7 +19,7 @@
   {
    "number": 13,
    "name": "Belousenko",
-   "lada_player_id": 11131
+   "lada_player_id": null
   },
   {
    "number": 14,

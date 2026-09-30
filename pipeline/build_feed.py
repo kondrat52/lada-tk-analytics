@@ -11,13 +11,13 @@ goes away; adding fields doesn't need a bump.
 """
 import os, json
 import numpy as np, pandas as pd
-from roster import SKATERS, GOALIE_NAMES, LADA_IDS, TEAM, TEAM_NAME, LADA_TEAM_ID, SITE_URL
+from roster import SKATERS, GOALIE_NAMES, LADA_IDS, TEAM_NAME, TEAM_SHORT, LADA_TEAM_ID, SITE_URL, OPPONENTS
 
 SCHEMA = 1
 
 
 def _team():
-    return {"name": TEAM_NAME, "short_name": TEAM, "lada_team_id": LADA_TEAM_ID}
+    return {"name": TEAM_NAME, "short_name": TEAM_SHORT, "lada_team_id": LADA_TEAM_ID}
 
 
 def _player(num):
@@ -59,7 +59,7 @@ def game_doc(game, A, players, highlights):
         "title": game.get("title"),
         "subtitle": game.get("eyebrow"),
         "team": _team(),
-        "opponent": {"code": game["opponent"], "name": game.get("opponent_name")},
+        "opponent": {"code": game["opponent"], "name": game.get("opponent_name") or OPPONENTS.get(game["opponent"])},
         "lada_game_id": game.get("lada_game_id"),
         "page_url": base,
         "video_url": game.get("video"),
@@ -106,7 +106,7 @@ def write_feed(root, games, docs_by_game, season):
         "schema": SCHEMA, "team": _team(), "site_url": site + "/", "updated": updated,
         "season_url": f"{site}/api/season.json", "roster_url": f"{site}/api/roster.json",
         "games": [{"id": g["id"], "date": g["date"], "title": g.get("title"), "subtitle": g.get("eyebrow"),
-                   "opponent": {"code": g["opponent"], "name": g.get("opponent_name")},
+                   "opponent": {"code": g["opponent"], "name": g.get("opponent_name") or OPPONENTS.get(g["opponent"])},
                    "lada_game_id": g.get("lada_game_id"),
                    "goals_on_video": docs_by_game[g["id"]]["goals_on_video"],
                    "highlights": len(docs_by_game[g["id"]]["highlights"]),

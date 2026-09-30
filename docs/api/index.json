@@ -2,7 +2,7 @@
  "schema": 1,
  "team": {
   "name": "LADA Turbo Kings",
-  "short_name": "Lada TK",
+  "short_name": "LTK",
   "lada_team_id": 24
  },
  "site_url": "https://kondrat52.github.io/lada-tk-analytics/",
@@ -13,11 +13,11 @@
   {
    "id": "2026-09-27-vs-rr",
    "date": "2026-09-27",
-   "title": "Lada TK vs RR, Sep 27",
+   "title": "LADA Turbo Kings vs Roadrunners, Sep 27",
    "subtitle": "Sun Sep 27, 2026 · 7:50 PM · Renton",
    "opponent": {
     "code": "RR",
-    "name": null
+    "name": "Roadrunners"
    },
    "lada_game_id": null,
    "goals_on_video": {
@@ -31,11 +31,11 @@
   {
    "id": "2026-09-13-vs-ttt",
    "date": "2026-09-13",
-   "title": "Lada TK vs TTT, Sep 13",
+   "title": "LADA Turbo Kings vs Tic-Tac-Toes, Sep 13",
    "subtitle": "Sun Sep 13, 2026 · 5:55 PM · Snoqualmie",
    "opponent": {
     "code": "TTT",
-    "name": null
+    "name": "Tic-Tac-Toes"
    },
    "lada_game_id": null,
    "goals_on_video": {

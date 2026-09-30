@@ -3,7 +3,7 @@ import sys, os, json
 from itertools import combinations
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from roster import SKATERS, TEAM
+from roster import SKATERS, TEAM, opponent_name
 
 
 
@@ -76,13 +76,13 @@ def build(gamedir, out):
     periods = game["periods"]
     cut = periods[-1]["end"] if game.get("video_ends_early") else None
     data = dict(periods=periods, players=player_rows(A, [p["label"] for p in periods], cut),
-                highlights=highlights(A, game), opponent=game["opponent"], team=TEAM,
+                highlights=highlights(A, game), opponent=opponent_name(game), team=TEAM,
                 stoppages=game.get("stoppages", []),
                 shifts=[dict(player=int(r.player), period=r.period, t0=float(r.t0), t1=float(r.t1)) for r in A.itertuples()],
                 video=game["video"], fun=fun_stats(A, game))
     html = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "report_template.html")).read()
     for k, v in {"__TITLE__": game["title"], "__EYEBROW__": game["eyebrow"], "__TEAM__": TEAM,
-                 "__OPP__": game["opponent"], "__VIDEO__": game["video"]}.items():
+                 "__OPP__": opponent_name(game), "__VIDEO__": game["video"]}.items():
         html = html.replace(k, v)
     html = html.replace("__DATA__", json.dumps(data))
     os.makedirs(os.path.dirname(out), exist_ok=True)

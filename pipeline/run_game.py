@@ -410,13 +410,13 @@ def cmd_publish(a):
     gd = f"{ROOT}/games/{a.game_id}"; os.makedirs(gd, exist_ok=True)
     shutil.copy(f"{W}/shifts_all.csv", f"{gd}/shifts.csv")
     Ps = periods(W)
-    from roster import TEAM
+    from roster import TEAM, OPPONENTS
     import datetime
     reads, names = load_reads(f"{W}/full")
     date = a.date or a.game_id[:10]
     d = datetime.date.fromisoformat(date)
     game = dict(
-        id=a.game_id, date=date, title=a.title or f"{TEAM} vs {a.opponent}, {d:%b} {d.day}",
+        id=a.game_id, date=date, title=a.title or f"{TEAM} vs {OPPONENTS.get(a.opponent, a.opponent)}, {d:%b} {d.day}",
         eyebrow=a.eyebrow, opponent=a.opponent, video=a.video or open(f"{W}/url.txt").read().strip(),
         periods=[dict(label=P["label"], start=P["start"], end=P["end"]) for P in Ps],
         nets={P["label"]: P["net"] for P in Ps},

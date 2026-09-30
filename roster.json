@@ -1,5 +1,6 @@
 {
-  "team": "Lada TK",
+  "team": "LADA Turbo Kings",
+  "team_short": "LTK",
   "team_name": "LADA Turbo Kings",
   "lada_team_id": 24,
   "site_url": "https://kondrat52.github.io/lada-tk-analytics/",
@@ -27,7 +28,6 @@
   "lada_player_ids": {
     "4": 11133,
     "12": 14209,
-    "13": 11131,
     "14": 11145,
     "18": 12165,
     "26": 19314,
