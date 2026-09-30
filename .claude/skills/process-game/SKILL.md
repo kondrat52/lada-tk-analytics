@@ -187,8 +187,11 @@ $PY pipeline/run_game.py publish $W <YYYY-MM-DD>-vs-<opp> --opponent <OPP> --eye
 ```
 
 This writes `games/<id>/game.json` + `shifts.csv` (with play time, stoppages and highlights) and rebuilds `docs/`,
-including the JSON feed in `docs/api/` (see API.md). If you know the game's LADA API id or the opponent's full
-name, add `"lada_game_id"` / `"opponent_name"` to `game.json` and re-run `$PY pipeline/build_site.py`. For a new
+including the JSON feed in `docs/api/` (see API.md). It also looks up the game's LADA API id (`lada_game_id`, which
+the LADA app uses to link the game) from LADA's public "last game" call. If it logs that it couldn't, find the id in
+`https://api.ladaseattle.com/api/v1/game/<LADA id of any game vs this opponent>/opponentGames` (the team's upcoming
+games and their ids: `.../api/v1/team/24/game/next/30`). Add it, and the opponent's full name if you know it, as
+`"lada_game_id"` / `"opponent_name"` in `game.json`, then re-run `$PY pipeline/build_site.py`. For a new
 player, also add their LADA player id to `lada_player_ids` in `roster.json` if the user knows it.
 The clips live in `docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Open the page locally
 (`docs/games/<id>/index.html`) and look it over. Show the user the table and the notable fun stats,

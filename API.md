@@ -22,8 +22,8 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
 - **Players** appear as `{number, name, lada_player_id}`. `name` is the surname as printed on the jersey.
   `lada_player_id` is the player's id on the LADA team roster (team 24), or `null` if not matched yet. Join on
   `lada_player_id` when it's there; jersey numbers can differ between the jersey and the LADA roster.
-- **Games** have a date-slug `id` (`2026-09-27-vs-rr`). `lada_game_id` is the LADA API game id, or `null` until
-  someone fills it in. Match on date + opponent when it's `null`.
+- **Games** have a date-slug `id` (`2026-09-27-vs-rr`). `lada_game_id` is the LADA API game id (publishing fills
+  it in from LADA when it can), or `null`. Match on the date when it's `null`: a team plays at most once a day.
 - `schema` changes only when a field is removed or changes meaning. New fields can appear at any time, so ignore
   the ones you don't know.
 - Missing numbers are `null` (e.g. `play` for a game without stoppage data, `shortest_shift` when every shift
@@ -41,7 +41,7 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
   "roster_url": ".../api/roster.json",
   "games": [{
     "id": "2026-09-27-vs-rr", "date": "2026-09-27", "title": "...", "subtitle": "Sun Sep 27, 2026 · 7:50 PM · Renton",
-    "opponent": {"code": "RR", "name": null}, "lada_game_id": null,
+    "opponent": {"code": "RR", "name": null}, "lada_game_id": 32969,
     "goals_on_video": {"for": 1, "against": 2}, "highlights": 4,
     "page_url": ".../games/2026-09-27-vs-rr/", "json_url": ".../api/games/2026-09-27-vs-rr.json"
   }]

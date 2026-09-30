@@ -404,6 +404,25 @@ def cmd_solve(a):
     log(f"check {W}/gantt_*.png: the bottom panel should sit at 5 (4 during a penalty kill)")
 
 
+def lada_game_id(date):
+    """LADA's id for our game on `date` (YYYY-MM-DD): the team's last game in the league's public API, when it is
+    that game. Best effort: None (and a note to set it by hand) when LADA is unreachable or has had a game since."""
+    import urllib.request
+    from roster import LADA_TEAM_ID
+    url = f"https://api.ladaseattle.com/api/v1/team/{LADA_TEAM_ID}/game/last"
+    try:
+        with urllib.request.urlopen(url, timeout=20) as r:
+            games = json.load(r)
+    except Exception as e:
+        log(f"LADA's last game unavailable ({e}); set lada_game_id in game.json by hand")
+        return None
+    for g in games:
+        if str(g.get("date", ""))[:10] == date and g.get("id"):
+            return g["id"]
+    log(f"LADA's last game isn't the {date} one; set lada_game_id in game.json by hand")
+    return None
+
+
 def cmd_publish(a):
     W = os.path.abspath(a.W)
     from reads import load_reads
@@ -432,6 +451,8 @@ def cmd_publish(a):
         for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early", "lada_game_id", "opponent_name"):
             if old.get(k):
                 game[k] = old[k]
+    if not game.get("lada_game_id"):  # links the game to the LADA app's schedule and scores
+        game["lada_game_id"] = lada_game_id(date)
     if os.path.exists(f"{W}/stoppages.json"):
         game["stoppages"] = json.load(open(f"{W}/stoppages.json"))
     if os.path.exists(f"{W}/highlights.json"):  # [{type, team|player, t, clip, poster, note}] from the clips step
