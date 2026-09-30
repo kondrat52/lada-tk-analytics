@@ -11,6 +11,8 @@
   run_game.py clip    W GAME_ID NAME T0 T1 POSTER_T [FOCUS]          zoomed clip into docs/games/<id>/clips;
                                              FOCUS = x px (a net x from rink.py) or #N to follow player N
   run_game.py publish W GAME_ID --opponent RR --eyebrow "Sun Sep 27, 2026 · 7:50 PM · Renton" [--date ...]
+  run_game.py archive W                      after publishing: drop the video, crops and sheets (~5 GB), keep the
+                                             game's data (detections, reads, tracks, reviews; ~100 MB)
 
 W is the per-game work folder (outside the repo). Every step skips work that is already done, so re-running
 after an interruption continues where it stopped. W/periods.json holds the period windows; fetch writes a
@@ -439,6 +441,32 @@ def cmd_publish(a):
     log(f"wrote {gd}; site rebuilt in docs/. Review, then commit and push to publish.")
 
 
+def _size(path):
+    n = 0
+    for d, _, fs in os.walk(path):
+        n += sum(os.lstat(os.path.join(d, f)).st_size for f in fs)
+    return n
+
+
+def cmd_archive(a):
+    """Keep a finished game's data so it can be re-solved later (as ~/hockey-work/2026-09-27-vs-rr): detections, OCR
+    reads, tracks, segments, reviews, periods, results, rink. Drop what is big and can be downloaded or regenerated:
+    the video and audio, crops, overview frames, contact sheets and charts."""
+    W = os.path.abspath(a.W)
+    if not os.path.exists(f"{W}/shifts_all.csv"):
+        sys.exit(f"{W} has no shifts_all.csv: archive a game only after solve and publish")
+    before = _size(W)
+    drop = [f"{W}/{n}" for n in ("video.webm", "audio.m4a", "yolo11m.pt", "full/crops", "full/ov")]
+    drop += glob.glob(f"{W}/*.jpg") + glob.glob(f"{W}/*.png") + glob.glob(f"{W}/rev_p*/*.jpg")
+    drop += glob.glob(f"{W}/full/ocr_done_*.txt") + glob.glob(f"{W}/p*/crops")
+    for p in drop:
+        if os.path.islink(p) or os.path.isfile(p):
+            os.remove(p)
+        elif os.path.isdir(p):
+            shutil.rmtree(p)
+    log(f"archived {W}: {before / 1e9:.1f} GB -> {_size(W) / 1e6:.0f} MB")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -448,6 +476,7 @@ if __name__ == "__main__":
     sub.add_parser("prepare").add_argument("W")
     sub.add_parser("goals").add_argument("W")
     sub.add_parser("unknown").add_argument("W")
+    sub.add_parser("archive").add_argument("W")
     fr = sub.add_parser("frames"); fr.add_argument("W"); fr.add_argument("out")
     for k in ("x0", "x1", "y0", "y1", "tile_w", "cols"):
         fr.add_argument(k, type=int)
@@ -464,4 +493,5 @@ if __name__ == "__main__":
         os.makedirs(a.W, exist_ok=True)
         open(f"{a.W}/url.txt", "w").write(a.url)
     {"fetch": cmd_fetch, "skaters": cmd_skaters, "prepare": cmd_prepare, "solve": cmd_solve, "goals": cmd_goals,
-     "frames": cmd_frames, "clip": cmd_clip, "publish": cmd_publish, "unknown": cmd_unknown}[a.cmd](a)
+     "frames": cmd_frames, "clip": cmd_clip, "publish": cmd_publish, "unknown": cmd_unknown,
+     "archive": cmd_archive}[a.cmd](a)

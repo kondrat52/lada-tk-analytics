@@ -122,4 +122,5 @@ $PY pipeline/build_site.py
 git add -A && git commit -m "Add <date> vs <opp>" && git push
 ```
 
-GitHub Pages redeploys in about a minute.
+GitHub Pages redeploys in about a minute. Then `run_game.py archive $W` drops the video, crops and sheets and keeps
+the game's data (~100 MB), so it can be re-solved later. Keep every game's archive.

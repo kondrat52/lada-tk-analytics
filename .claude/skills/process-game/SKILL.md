@@ -190,5 +190,16 @@ This writes `games/<id>/game.json` + `shifts.csv` (with play time, stoppages and
 The clips live in `docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Open the page locally
 (`docs/games/<id>/index.html`) and look it over. Show the user the table and the notable fun stats,
 then ask before committing and pushing: the site is public. After pushing, check that the page is live (Pages
-takes about a minute; add `?v=<random>` to skip the CDN cache). Offer to delete `$W` (the video and crops) once
-they're happy.
+takes about a minute; add `?v=<random>` to skip the CDN cache).
+
+## 9. Archive
+
+Once the user is happy, offer to free the disk space with
+
+```sh
+$PY pipeline/run_game.py archive $W
+```
+
+It deletes the video, crops, overview frames and sheets (~5 GB) and keeps the game's data in `$W` (~100 MB:
+detections, OCR reads, tracks, reviews, periods, results, rink), so the game can be re-solved with a later
+pipeline or used as a regression test. Never `rm -rf` the work folder: the user wants every game's data kept.
