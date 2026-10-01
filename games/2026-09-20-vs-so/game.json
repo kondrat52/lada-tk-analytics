@@ -1,0 +1,267 @@
+{
+  "id": "2026-09-20-vs-so",
+  "date": "2026-09-20",
+  "title": "LADA Turbo Kings vs Sea Otters, Sep 20",
+  "eyebrow": "Sun Sep 20, 2026 · 9:15 PM · Renton",
+  "opponent": "SO",
+  "video": "https://youtu.be/mUzkuUpb4n4",
+  "periods": [
+    {
+      "label": "P1",
+      "start": 0,
+      "end": 1128
+    },
+    {
+      "label": "P2",
+      "start": 1179,
+      "end": 2318
+    },
+    {
+      "label": "P3",
+      "start": 2372,
+      "end": 4013
+    }
+  ],
+  "nets": {
+    "P1": 3245,
+    "P2": 540,
+    "P3": 3245
+  },
+  "penalty_kills": [
+    {
+      "period": "P2",
+      "start": 1319,
+      "end": 1517,
+      "player": 4
+    },
+    {
+      "period": "P3",
+      "start": 3545,
+      "end": 3753,
+      "player": 90
+    }
+  ],
+  "notes": [
+    "Home game: we wore white and had the bench right of center, so the pipeline found our players by the white jersey this time.",
+    "Penalty kills, read off the arena scoreboard: Sokolov #4, 3 minutes from 21:59 to 25:17 of the video (P2), and Ivanov #90, 2 minutes from 59:05 to 62:33 (P3). Both solved with 4 skaters on the ice.",
+    "Goal times also come from the scoreboard: the Sea Otters scored first at 42:51 of the video, then we scored at 45:56, 53:04 and 64:25. The video runs to the final horn."
+  ],
+  "video_ends_early": false,
+  "fun": {
+    "name_reads": {
+      "13": 564,
+      "31": 489,
+      "90": 299,
+      "61": 170,
+      "89": 161,
+      "18": 135,
+      "64": 104,
+      "14": 85,
+      "74": 62,
+      "12": 48,
+      "4": 23,
+      "82": 21,
+      "33": 3
+    }
+  },
+  "pipeline": {
+    "detections": 668963,
+    "crops": 105311,
+    "reads": 5716,
+    "reviewed": 828
+  },
+  "highlights": [
+    {
+      "type": "penalty",
+      "player": 4,
+      "t": 1298,
+      "clip": "clips/penalty-4.mp4",
+      "poster": "clips/penalty-4.jpg",
+      "note": "A Sea Otter goes down in front of our net; 3-minute minor"
+    },
+    {
+      "type": "goal",
+      "team": "against",
+      "t": 2571,
+      "clip": "clips/goal-1.mp4",
+      "poster": "clips/goal-1.jpg",
+      "note": "Scramble at our net"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 2756,
+      "clip": "clips/goal-2.mp4",
+      "poster": "clips/goal-2.jpg",
+      "note": "Pressure at their net ties it 1-1"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 3184,
+      "clip": "clips/goal-3.mp4",
+      "poster": "clips/goal-3.jpg",
+      "note": "Goalie down and the go-ahead goal"
+    },
+    {
+      "type": "penalty",
+      "player": 90,
+      "t": 3528,
+      "clip": "clips/penalty-90.mp4",
+      "poster": "clips/penalty-90.jpg",
+      "note": "Whistle as play comes into our zone; 2-minute minor"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 3864,
+      "clip": "clips/goal-4.mp4",
+      "poster": "clips/goal-4.jpg",
+      "note": "Rush to the net makes it 3-1"
+    }
+  ],
+  "lada_game_id": 32944,
+  "opponent_name": "Sea Otters",
+  "stoppages": [
+    [
+      0,
+      7
+    ],
+    [
+      267,
+      290
+    ],
+    [
+      396,
+      424
+    ],
+    [
+      757,
+      771
+    ],
+    [
+      771,
+      801
+    ],
+    [
+      893,
+      921
+    ],
+    [
+      1084,
+      1108
+    ],
+    [
+      1179,
+      1219
+    ],
+    [
+      1300,
+      1341
+    ],
+    [
+      1367,
+      1383
+    ],
+    [
+      1531,
+      1560
+    ],
+    [
+      1702,
+      1728
+    ],
+    [
+      1728,
+      1770
+    ],
+    [
+      1770,
+      1803
+    ],
+    [
+      1803,
+      1835
+    ],
+    [
+      1851,
+      1878
+    ],
+    [
+      1978,
+      2023
+    ],
+    [
+      2150,
+      2186
+    ],
+    [
+      2372,
+      2397
+    ],
+    [
+      2397,
+      2421
+    ],
+    [
+      2451,
+      2466
+    ],
+    [
+      2522,
+      2551
+    ],
+    [
+      2570,
+      2602
+    ],
+    [
+      2750,
+      2789
+    ],
+    [
+      2973,
+      3012
+    ],
+    [
+      3012,
+      3043
+    ],
+    [
+      3043,
+      3075
+    ],
+    [
+      3159,
+      3217
+    ],
+    [
+      3318,
+      3341
+    ],
+    [
+      3392,
+      3448
+    ],
+    [
+      3471,
+      3488
+    ],
+    [
+      3641,
+      3669
+    ],
+    [
+      3684,
+      3707
+    ],
+    [
+      3759,
+      3791
+    ],
+    [
+      3860,
+      3900
+    ]
+  ]
+}
