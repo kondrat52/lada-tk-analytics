@@ -16,6 +16,10 @@ fair amount of tokens for the visual review. Keep the user posted with one line 
 - The YouTube link (if not given) and the opponent's short name (e.g. RR).
 - Date and start time, rink (usually Renton) for the page header. The video title usually has them, e.g.
   "LTKvsTTT 5:55 PM PDT - SEP 13, 2026 (Snoqualmie) - wide cut".
+- Home or away. So far the home team has worn white (ours: blue numbers and trim) and, at Renton, sat on the
+  bench right of center; away we wear light blue and sit left of center. LADA's API says which:
+  `https://api.ladaseattle.com/api/v1/game/<id>` has `playHome`. The pipeline finds our players by jersey colour
+  and their line changes by the bench, so check frame600.png (step 1) if unsure.
 - Penalties we took: who and roughly when (period, minute). The video shows a penalty kill only as
   4 skaters, never who sat.
 - New or substitute players (number and surname). Step 4 also finds them from the jerseys.
@@ -29,8 +33,19 @@ Don't wait for answers to start step 1; you need them from step 3 on.
 PY=~/.venvs/hockey/bin/python
 [ -x $PY ] || sh pipeline/setup_env.sh
 W=~/hockey-work/<YYYY-MM-DD>-vs-<opp>          # outside the repo; ~5 GB
-$PY pipeline/run_game.py fetch "<url>" $W --rink <renton|snoqualmie>   # run_in_background: true
+nohup caffeinate -dims -t 28800 >/dev/null 2>&1 &   # keep the Mac awake for the whole run (8 h)
+$PY pipeline/run_game.py fetch "<url>" $W --rink <renton|snoqualmie> [--jersey white --bench right]   # run_in_background: true
 ```
+
+A sleeping Mac stalls everything: detection crawls, and subagents die mid-review ("your computer went to sleep").
+
+`--jersey` picks the colour tests in `rink.JERSEYS` (default light blue). If you find out after detection that we
+wore another jersey (prepare makes only a handful of review rows; the roster card is nearly empty), run
+`$PY pipeline/run_game.py jersey $W white`: it records the jersey, cuts the missing crops from the video
+(~5 min, no detection rerun) and OCRs them. Then carry on from step 2. `--bench right` mirrors our bench about center
+ice (Renton only so far). Check it on frame600.png: our jerseys sit on our bench. If it was wrong, add
+`"bench": "right"` to `$W/full/rink.json` before `prepare` (it decides which detections are tracked at the bench),
+or at the latest before `solve` (it decides which track ends count as line changes).
 
 Each rink films from a different spot, so the camera geometry lives in `pipeline/rink.py` (detection crop, where
 the far boards are, our bench, nets). Renton has both benches behind the far boards. Snoqualmie has them on the
@@ -50,15 +65,29 @@ the video decoder.
 Read `$W/break_*.jpg` (each break: the ice empties and both teams sit at their benches for about a minute) and
 `$W/video_end.jpg`. `periods.json` boundaries are usually right to within a few seconds. Fix any that aren't.
 `net` is where our goalie plays that period (`nets` in `rink.py`, e.g. Renton 540 = left, 3245 = right), and it
-switches each period. At Snoqualmie the arena scoreboard is in frame (x 1790-2070, y 262-378): a `frames` sheet
-of it every 30 s gives period clock, score, and the penalty panels with the player's number, so read it first.
-If the video
-ends before the final horn (play still going in `video_end.jpg`), remember to pass `--video-ends-early` when
-publishing.
+switches each period.
+
+Both rinks have the arena scoreboard in frame (`scoreboard` in `rink.py`): period clock, score, shots, and the
+home/guest penalty panels with the player's number and the time left. Read it first. Its LEDs flicker (at Renton
+most single frames show it dark), so take the brightest frame of each second:
+
+```sh
+$PY pipeline/scoreboard.py $W                                   # one pass over the video, ~5 min
+$PY pipeline/scoreboard.py $W $W/sb.jpg $(seq 30 60 4000)        # the board every 60 s, as a sheet
+```
+
+From that sheet: which side we are (home/guest; LADA's `playHome` says too), when the score changed, which
+penalty panels lit up and for whom, and the clock at the end. In the last minute it shows tenths, so you can tell
+whether the video reaches the final horn. If it doesn't (play still going in `video_end.jpg` and time left on the
+clock), pass `--video-ends-early` when publishing.
 
 ## 3. Penalty kills
 
-For each penalty the user named, find the window where only 4 of our skaters are on the ice:
+The scoreboard sheet shows every penalty we took: our penalty panel lights with the player's number and counts
+down. Sheet it second by second around each one: the panel appears at the whistle, and the penalty ends when it
+reaches 0:00 (LADA minors have been 2 or 3 minutes; the clock may stop meanwhile). That span is the penalty kill.
+Without a readable board, or for a penalty the user named, find the window where only 4 of our skaters are on
+the ice:
 
 ```sh
 $PY pipeline/run_game.py skaters $W <t0> <t1>     # seconds of video around the penalty
@@ -78,35 +107,40 @@ $PY pipeline/run_game.py unknown $W
 ```
 
 It lists numbers the OCR read hundreds of times that aren't on the roster, with any surname read on the same
-crops and a crop sheet `$W/unknown_<N>.jpg`. Read the sheet. A light-blue jersey is ours: add the number and the
-surname on the back to `roster.json` (tell the user the name in the summary so they can correct the spelling). A
-white jersey is an opponent whose lettering happens to be blue: ignore it. Then:
+crops and a crop sheet `$W/unknown_<N>.jpg`. Read the sheet. Our jersey is ours (light blue, or white with blue
+numbers and trim when we wear white): add the number and the surname on the back to `roster.json` (tell the user
+the name in the summary so they can correct the spelling). Another team's jersey that passes for ours (white with
+blue lettering against our light blue) is an opponent: ignore it. Then:
 
 ```sh
 $PY pipeline/run_game.py prepare $W
 ```
 
 This makes per-period tracks, review sheets and a roster card in `$W/rev_pN/`. Read one `roster_card.jpg`. Each
-row should be one player with a consistent look. A roster player with an empty row most likely didn't play: say so
-in the review prompt. If you add a player after `prepare`, delete `$W/p*` and `$W/rev_p*` and run it again, but
+row should be one player with a consistent look. A roster player with an empty row on every period's card most
+likely didn't play: say so in the review prompt. Empty in one period only usually means he skated with his back
+away from the camera that period (wingers swap sides): tell that period's reviewers to Read another period's
+`roster_card.jpg` for him. If you add a player after `prepare`, delete `$W/p*` and `$W/rev_p*` and run it again, but
 only before the review starts: never re-run `prepare` for a period once its review started (review rows point at
 segment numbers).
 
 ## 5. Visual review (subagents, parallel)
 
-For every period, split its `sheet_*.jpg` files into chunks of about 6 and launch one general-purpose subagent
-per chunk, all at once. Use letters a, b, c… per period. Prompt (fill the brackets):
+For every period, split its `sheet_*.jpg` files into chunks of 3 and launch one general-purpose subagent per
+chunk, about 6 at a time (start the next as each finishes). Bigger chunks or many more at once tend to stall
+before writing anything; one file per sheet keeps whatever finished. Prompt (fill the brackets):
 
 > You are identifying rec-hockey players in image crops. Accuracy matters more than coverage: answer "?"
 > whenever you are not sure.
 >
 > Directory: [W]/rev_[pN]/
 >
-> 1. First Read `roster_card.jpg`. Each row shows one player of the light-blue team (label "#N" = jersey number)
+> 1. First Read `roster_card.jpg`. Each row shows one player of our team, in [light-blue jerseys | white jerseys
+> with blue numbers and blue trim] (label "#N" = jersey number)
 > in several views. Learn distinguishing features: number/name on the back (also sleeve numbers), sock
 > color/stripes, pants (black shorts over white socks vs. long black), helmet color, glove color, skate color.
 > Roster: [#N SURNAME list from roster.json]. [(#N and #M probably did not play this game.)] If you clearly see
-> another number on a light-blue jersey, report it.
+> another number on our jersey, report it.
 > #58 is the goalie (big leg pads): report "G" for goalie rows.
 >
 > 2. Then Read ONLY these sheets: [sheet_XXX.jpg, …]. Each sheet has up to 8 rows. Each row = one tracked
@@ -116,15 +150,17 @@ per chunk, all at once. Use letters a, b, c… per period. Prompt (fill the brac
 > roster card. Only give a number if reasonably confident (high = number/name visible on that player's part
 > of the row, or a very distinctive look; med = appearance only, with no competing lookalike). If appearance
 > fits several players, answer "?". If the row switches players, report both with the switch time in seconds.
-> Tiles showing a white-jersey opponent or a referee are noise.
+> Tiles showing an opponent ([white | dark/red] jerseys) or a referee (black and white stripes) are noise.
 >
-> 3. Write your answer with the Write tool to `[W]/rev_[pN]/review_[letter].txt` as CSV, header exactly:
+> 3. As soon as you have decided all rows of a sheet, and before reading the next one, Write that sheet's answer
+> to `[W]/rev_[pN]/review_sNNN.txt` (sheet_007.jpg -> review_s007.txt) as CSV, header exactly:
 > `row_id,player,confidence,switch_time,player2,confidence2,note`
 > player/player2: a jersey number, "?" or "G"; confidence: high/med/low; switch fields empty unless the row
-> switches; note: a few words, no commas. One line per row, every row on your sheets.
+> switches; note: a few words, no commas. One line per row, every row on that sheet.
 > Your final reply should be just one line: how many rows you wrote.
 
-When all are back, check each period's review files together cover every row in its `manifest.csv`.
+When all are back, check each period's review files together cover every row in its `manifest.csv`, and
+relaunch the sheets that are missing.
 
 ## 6. Solve and check
 
@@ -145,7 +181,8 @@ $PY pipeline/run_game.py goals $W
 ```
 
 This lists candidate goals: center-ice faceoffs that aren't period starts, and long stoppages that restart at
-center. A goal is always followed by a center faceoff. Check each candidate by eye:
+center. A goal is always followed by a center faceoff. The scoreboard narrows each one down: the clock stops a
+second or two after the goal, and the score changes soon after. Check each candidate by eye:
 
 ```sh
 # full rink every 3 s over the minute before the faceoff (Renton rows; Snoqualmie: y 380 1536)

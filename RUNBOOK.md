@@ -27,6 +27,7 @@ $PY -m yt_dlp -f 313 -o "$W/video.webm" "https://youtu.be/VIDEO_ID"   # 313 = 21
 FF=$($PY -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())")
 $FF -loglevel error -ss 600 -i $W/video.webm -frames:v 1 $W/frame600.png
 echo '{"rink": "snoqualmie"}' > $W/full/rink.json   # not for Renton, the default
+# home games (white jerseys, right bench at Renton): {"rink": "renton", "jersey": "white", "bench": "right"}
 $PY pipeline/boards.py $W/frame600.png $W/full     # writes boards_poly.npy
 ```
 
@@ -34,6 +35,12 @@ The camera geometry per rink (detection crop, board band, ice area, our bench, n
 Check the fitted boards line on the frame, and that the benches are where the rink's class expects them, by viewing
 a crop of the frame. If the camera moved, or it's a new rink, adjust or add a class there before detecting: the
 detection crop (`crop_top`) must include the heads of players standing at the far boards.
+
+Our players are told apart by jersey colour (`JERSEYS` in `rink.py`: light blue by default, or white with blue
+numbers). Detection only saves crops of players in that jersey, so set it before detecting. The bench we had
+(`"bench": "right"` mirrors Renton's left bench about center ice) decides which track ends count as line changes. If it was wrong,
+`run_game.py jersey $W white` fixes it afterwards: `crops.py` cuts the missing crops from the video using the
+detections already in `dets.csv`, then OCR reads them.
 
 ## 3. Detect (~80 min on an M3)
 
@@ -62,6 +69,9 @@ Breaks show the ice empty with both teams at the benches for about a minute. Our
 period. Net x: see `nets` in `pipeline/rink.py` (Renton ≈ 540 left, ≈ 3245 right). Narrow each break down to the
 second with finer sheets.
 Ask about penalties: who, and roughly when. A penalty kill shows up as 4 of our skaters on the ice.
+The arena scoreboard is in frame at both rinks: `pipeline/scoreboard.py $W` keeps its brightest frame per second
+(the LEDs flicker), and `pipeline/scoreboard.py $W out.jpg t1 t2 ...` sheets it. It shows the period clock, the
+score, and each penalty with the player's number and time left.
 
 ## 6. Track each period
 
@@ -75,7 +85,7 @@ Repeat for p2 and p3. Finish OCR (step 4) before this step, and never re-run `ru
 after its review (step 7) has started: review rows point at segment numbers, and a new segmentation scrambles
 them. Look at `roster_card.jpg`. Every row should be one player. The card only has roster numbers, so run
 `run_game.py unknown $W` before tracking to find new or sub players (numbers read hundreds of times that aren't
-in `roster.json`, with a crop sheet each): add ours to `roster.json`; white jerseys are opponents.
+in `roster.json`, with a crop sheet each): add ours to `roster.json`; other teams' jerseys are opponents.
 
 ## 7. Visual review (Claude subagents, ~15 min in parallel)
 

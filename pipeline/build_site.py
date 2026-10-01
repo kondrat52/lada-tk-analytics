@@ -10,7 +10,7 @@ from build_feed import season_table, game_doc, write_feed
 from roster import SKATERS, TEAM, opponent_name
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-fmt = lambda s: f"{int(s // 60)}:{int(round(s % 60)):02d}"
+fmt = lambda s: f"{int(round(s)) // 60}:{int(round(s)) % 60:02d}"
 
 games, allsh, docs = [], [], {}
 for gd in sorted(glob.glob(f"{ROOT}/games/*/")):

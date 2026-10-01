@@ -36,7 +36,7 @@ if __name__ == "__main__":
     st = A.groupby("player").dur.agg(shifts="count", toi="sum", avg="mean", median="median", longest="max", shortest="min")
     per = A.pivot_table(index="player", columns="period", values="dur", aggfunc=["count", "sum"], fill_value=0)
     st["name"] = st.index.map(NAMES)
-    fmt = lambda s: f"{int(s // 60)}:{int(round(s % 60)):02d}"
+    fmt = lambda s: f"{int(round(s)) // 60}:{int(round(s)) % 60:02d}"
     show = st.copy()
     for c in ["toi", "avg", "median", "longest", "shortest"]:
         show[c] = show[c].map(fmt)

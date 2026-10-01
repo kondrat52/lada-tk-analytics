@@ -17,7 +17,7 @@ LOOKALIKE = {frozenset(p) for p in [(18, 78), (13, 33), (12, 82), (13, 18), (89,
 
 
 def goalie_zone(d, nets, R):
-    """nets: list of (t0, t1, net_x). Drops detections standing in the light-blue crease."""
+    """nets: list of (t0, t1, net_x). Drops detections standing in our crease."""
     drop = np.zeros(len(d), bool)
     for t0, t1, nx in nets:
         drop |= (d.t >= t0) & (d.t < t1) & R.in_crease(d.fx, d.rel, nx)
@@ -76,7 +76,7 @@ def build(outdir, tmax, nets, tmin=0.0):
     d = load(f"{outdir}/dets.csv")
     d = d[(d.t >= tmin) & (d.t <= tmax)]
     d["rel"] = d.fy - d.board
-    lb = d[(d.blue >= 0.3) & (d.conf >= 0.3) & (d.onice | R.bench_zone(d.fx, d.rel))]
+    lb = d[d.ours & (d.conf >= 0.3) & (d.onice | R.bench_zone(d.fx, d.rel))]
     lb = goalie_zone(lb, nets, R)
     t = track(lb)
     dig, _ = load_reads(outdir)

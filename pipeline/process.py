@@ -1,16 +1,17 @@
-"""Detect all people on the rink, record jersey color stats, save 4K crops of light-blue players.
+"""Detect all people on the rink, record jersey color stats, save 4K crops of players in our jersey (rink.jersey).
 
 Usage: process.py VIDEO OUTDIR FPS [START_SEC DUR_SEC]
   (restart after a crash with START_SEC = last t in dets.csv; frame numbers stay global)
 Outputs:
   OUTDIR/dets.csv    frame,t,x1,y1,x2,y2,conf,blue,white,purple,red,dark,lblue
-  OUTDIR/crops/      f{frame:06d}_{i:02d}.jpg  (light-blue candidates)
+  OUTDIR/crops/      f{frame:06d}_{i:02d}.jpg  (candidates in our jersey)
   OUTDIR/ov/         ov_{sec:05d}.jpg overview frames every 10 s
 """
 import os, sys, time, threading, queue, subprocess
 import numpy as np, cv2
 from ultralytics import YOLO
-from rink import rink
+from rink import rink, jersey
+from crops import wants_crop, save_crop
 
 import imageio_ffmpeg
 FF = imageio_ffmpeg.get_ffmpeg_exe()
@@ -43,6 +44,8 @@ def reader():
 threading.Thread(target=reader, daemon=True).start()
 
 model = YOLO(os.environ.get("YOLO_MODEL", "yolo11m.pt"))  # downloads on first use
+
+crop_test = jersey(OUT)["crop"]
 
 def color_stats(img, b):
     x1, y1, x2, y2 = b
@@ -88,11 +91,8 @@ while not done:
             cs = color_stats(img, bi)
             fcsv.write(f"{n},{t:.3f},{bi[0]},{bi[1]+Y0},{bi[2]},{bi[3]+Y0},{c:.3f}," +
                        ",".join(f"{v:.3f}" for v in cs) + "\n")
-            h = bi[3] - bi[1]
-            if cs[0] >= 0.12 and (h >= 100 or n % 3 == 0):
-                pw, ph = int(0.1 * (bi[2] - bi[0])), int(0.05 * h)
-                crop = img[max(bi[1] - ph, 0):bi[3] + ph, max(bi[0] - pw, 0):bi[2] + pw]
-                cv2.imwrite(f"{OUT}/crops/f{n:06d}_{i:02d}.jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 88])
+            if wants_crop(crop_test, cs, bi[3] - bi[1], n):
+                save_crop(img, bi, f"{OUT}/crops/f{n:06d}_{i:02d}.jpg")
     if batch[0][0] % (BATCH * 50) == 0:
         el = time.time() - t0
         print(f"frame {batch[-1][0]} t={START + batch[-1][0] / FPS:.0f}s elapsed={el:.0f}s "

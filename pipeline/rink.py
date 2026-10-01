@@ -14,16 +14,25 @@ from matplotlib.path import Path
 
 
 class Renton:
-    """Camera high on the near side; both benches behind the far boards, ours left of center."""
+    """Camera high on the near side; both benches behind the far boards, one left of center and its mirror image
+    right of center, with the penalty boxes between them. So far the away team (we wear light blue) has had the
+    left one and the home team (white) the right one."""
     crop_top = 560 / 1702         # detection band starts here (fraction of frame height); ceiling above
     board_band = (0.41, 0.76)     # rows where boards.py looks for the far boards' yellow kick plate (fractions)
     center_x = 1880
     nets = {"left": 540, "right": 3245}
     ocr_skip_depth = None         # OCR skips crops this deep in our bench (None: read everything)
     min_break = 25                # seconds of empty open ice that make an intermission
+    bench_side = "left"           # our usual bench; rink.json "bench" can pick the other one
+    scoreboard = (3290, 690, 130, 80)  # x, y, w, h of the arena scoreboard (scoreboard.py)
 
-    def __init__(self, board_poly):
+    def __init__(self, board_poly, bench=None):
         self.P = board_poly
+        self.mirror = bool(bench) and bench != self.bench_side
+
+    def _bench_x(self, x):
+        """x as if we sat on the left bench: the right one is its mirror image about center ice."""
+        return 2 * self.center_x - x if self.mirror else x
 
     def onice(self, x, rel):
         return rel > 5
@@ -37,10 +46,12 @@ class Renton:
 
     def at_bench(self, x, rel):
         """At our bench: standing at its boards or behind them."""
+        x = self._bench_x(x)
         return (x > 1340) & (x < 1760) & (rel < 15)
 
     def bench_zone(self, x, rel):
         """Off the ice but tracked anyway, to see players come and go."""
+        x = self._bench_x(x)
         return (x > 1300) & (x < 1800) & (rel > -80)
 
     def in_crease(self, x, rel, net_x):
@@ -66,6 +77,13 @@ class Snoqualmie(Renton):
     ocr_skip_depth = 60
     # intermissions are short (~1.5 min): players stand at their bench doors, then skate out to warm up
     min_break = 10
+    bench_side = "right"
+    scoreboard = (1790, 262, 280, 116)
+
+    def __init__(self, board_poly, bench=None):
+        if bench and bench != self.bench_side:
+            raise NotImplementedError("Snoqualmie's left bench isn't mapped yet")
+        super().__init__(board_poly)
 
     def _xy(self, x, rel):
         x = np.asarray(x, float); rel = np.asarray(rel, float)
@@ -96,6 +114,18 @@ class Snoqualmie(Renton):
 
 RINKS = {"renton": Renton, "snoqualmie": Snoqualmie}
 
+# Our jersey that game, as tests on process.py's torso colour fractions (the dets.csv columns, or a dict of them):
+# `ours` picks our players for tracking, the looser `crop` which detections get a 4K crop for OCR and review.
+# White (home) jerseys have blue numbers and trim, so the blue fraction is low; what tells them apart is a white
+# torso with little dark in it. Referees' stripes are 25-55% dark, dark jerseys more. Red jerseys with white
+# stripes (a Sea Otter's) are 25-60% white but 30-50% red; ours are under 10% red.
+JERSEYS = {
+    "light blue": dict(ours=lambda c: c["blue"] >= 0.3, crop=lambda c: c["blue"] >= 0.12),
+    "white": dict(ours=lambda c: (c["red"] < 0.1) & (((c["white"] >= 0.35) & (c["dark"] < 0.3)) |
+                                                    ((c["white"] >= 0.25) & (c["dark"] < 0.2) & (c["red"] < 0.05))),
+                  crop=lambda c: (c["white"] >= 0.25) & (c["dark"] < 0.35) & (c["red"] < 0.1)),
+}
+
 
 def _full_dir(folder):
     """W/full for a folder holding dets.csv itself or a link to it (period dirs)."""
@@ -104,13 +134,22 @@ def _full_dir(folder):
     return os.path.dirname(os.path.realpath(os.path.join(folder, "dets.csv")))
 
 
-def rink_name(folder):
+def _config(folder):
     p = os.path.join(_full_dir(folder), "rink.json")
-    return json.load(open(p))["rink"] if os.path.exists(p) else "renton"
+    return json.load(open(p)) if os.path.exists(p) else {}
+
+
+def rink_name(folder):
+    return _config(folder).get("rink", "renton")
+
+
+def jersey(folder):
+    """Our jersey's colour tests (JERSEYS) for this video: rink.json's "jersey", light blue unless set."""
+    return JERSEYS[_config(folder).get("jersey", "light blue")]
 
 
 def rink(folder):
     """Geometry for the video whose detections live in `folder` (W/full, or a period dir linking into it)."""
     full = _full_dir(folder)
     bp = os.path.join(full, "boards_poly.npy")
-    return RINKS[rink_name(folder)](np.load(bp) if os.path.exists(bp) else None)
+    return RINKS[rink_name(folder)](np.load(bp) if os.path.exists(bp) else None, bench=_config(folder).get("bench"))

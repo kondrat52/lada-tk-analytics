@@ -1,7 +1,11 @@
 """Driver for processing one game. Run with the hockey env's python (see setup_env.sh).
 
-  run_game.py fetch   URL W [--rink NAME] [--limit SEC]   download, calibrate, detect (auto-restart), OCR,
-                                             propose periods; --rink: camera geometry from rink.py (renton)
+  run_game.py fetch   URL W [--rink NAME] [--jersey NAME] [--bench SIDE] [--limit SEC]   download, calibrate,
+                                             detect (auto-restart), OCR, propose periods; --rink: camera geometry
+                                             from rink.py (renton); --jersey: our jersey that game (light blue,
+                                             white); --bench: left or right, our bench (the rink's usual one unless set)
+  run_game.py jersey  W NAME                 we wore another jersey than fetch was told: switch to it, cut its
+                                             crops from the video (~5 min) and OCR them
   run_game.py skaters W T0 T1               our skaters detected on the ice per 5 s (find penalty kills)
   run_game.py unknown W                      numbers/surnames read that aren't on the roster (new players?)
   run_game.py prepare W                      per period: tracking, review sheets, roster card
@@ -162,8 +166,8 @@ def ocr(W):
 
 
 def propose_periods(W):
-    """Breaks = min_break+ seconds (rink.py) with nobody out on the open ice. Our goalie's net side per period from light-blue
-    detections standing in each crease."""
+    """Breaks = min_break+ seconds (rink.py) with nobody out on the open ice. Our goalie's net side per period from
+    detections in our jersey standing in each crease."""
     from track import load
     R = rink(f"{W}/full")
     d = load(f"{W}/full/dets.csv"); d["rel"] = d.fy - d.board
@@ -186,10 +190,10 @@ def propose_periods(W):
     for a, b in zip(edges[0::2], edges[1::2]):
         if b - a >= 240:
             periods.append([a, b])
-    blue = d[d.blue >= 0.3]
+    us = d[d.ours]
     res = []
     for k, (a, b) in enumerate(periods, 1):
-        w = blue[(blue.t >= a) & (blue.t < b)]
+        w = us[(us.t >= a) & (us.t < b)]
         nl, nr = (R.in_crease(w.fx, w.rel, R.nets[s]).sum() for s in ("left", "right"))
         res.append(dict(label=f"P{k}", start=int(a), end=int(b), net=R.nets["left" if nl >= nr else "right"], pk=[]))
     json.dump(res, open(f"{W}/periods.json", "w"), indent=2)
@@ -200,13 +204,22 @@ def propose_periods(W):
     print(json.dumps(res, indent=2))
 
 
+def set_config(W, **kw):
+    """Store rink/jersey choices in W/full/rink.json, which every later step reads (rink.py)."""
+    from rink import RINKS, JERSEYS
+    for k, known in (("rink", RINKS), ("jersey", JERSEYS), ("bench", ("left", "right"))):
+        if kw.get(k) and kw[k] not in known:
+            sys.exit(f"unknown {k} {kw[k]!r}; known: {', '.join(known)}")
+    p = f"{W}/full/rink.json"
+    cfg = json.load(open(p)) if os.path.exists(p) else {}
+    cfg.update({k: v for k, v in kw.items() if v})
+    if cfg:
+        json.dump(cfg, open(p, "w"))
+
+
 def cmd_fetch(a):
     W = os.path.abspath(a.W); os.makedirs(f"{W}/full", exist_ok=True)
-    if a.rink:
-        from rink import RINKS
-        if a.rink not in RINKS:
-            sys.exit(f"unknown rink {a.rink}; known: {', '.join(RINKS)}")
-        json.dump({"rink": a.rink}, open(f"{W}/full/rink.json", "w"))
+    set_config(W, rink=a.rink, jersey=a.jersey, bench=a.bench)
     vid = download(a.url, W)
     download_audio(a.url, W)
     calibrate(vid, W)
@@ -214,6 +227,15 @@ def cmd_fetch(a):
     ocr(W)
     propose_periods(W)
     log(f"fetch done. Check {W}/periods.json against {W}/break_*.jpg and video_end.jpg")
+
+
+def cmd_jersey(a):
+    W = os.path.abspath(a.W)
+    set_config(W, jersey=a.name)
+    sh(PY, f"{HERE}/crops.py", f"{W}/video.webm", f"{W}/full", FPS)
+    ocr(W)
+    log(f"crops and reads for {a.name} done; now `unknown` and `prepare` (delete {W}/p* and {W}/rev_p* if an "
+        "earlier prepare made them)")
 
 
 # ---------------------------------------------------------------- helpers for the review
@@ -230,9 +252,9 @@ def cmd_skaters(a):
             tr.append(pd.read_csv(p))
     if tr:
         t = pd.concat(tr)
-    else:  # before prepare: raw light-blue detections on the ice
+    else:  # before prepare: raw detections in our jersey on the ice
         from track import load
-        t = load(f"{a.W}/full/dets.csv"); t = t[t.blue >= 0.3]
+        t = load(f"{a.W}/full/dets.csv"); t = t[t.ours]
     t = t[(t.t >= a.T0) & (t.t < a.T1) & t.onice]
     c = t.groupby([(t.t // 5).astype(int) * 5, "frame"]).size().groupby(level=0).quantile(0.75)
     print("our skaters on the ice (75th pct per 5 s; includes the goalie before prepare):")
@@ -303,7 +325,7 @@ def cmd_goals(a):
 
 def cmd_unknown(a):
     """Jersey numbers and surnames the OCR read that aren't in roster.json: new or substitute players, or an
-    opponent whose white jersey has blue lettering. Writes W/unknown_<N>.jpg crop sheets to check each by eye."""
+    opponent whose jersey passes for ours. Writes W/unknown_<N>.jpg crop sheets to check each by eye."""
     from roster import SKATERS, GOALIES
     from reads import name_to_num
     W = os.path.abspath(a.W); full = f"{W}/full"
@@ -334,8 +356,8 @@ def cmd_unknown(a):
     print("  fewer reads (usually opponents or misreads):", fmt(cnt[(cnt < floor) & (cnt >= 30)].head(8)))
     lone = alpha[~alpha.file.isin(set(dig.file))].up.value_counts()
     print("  other surnames read 20+ times:", fmt(lone[lone >= 20].head(8)))
-    print("Check each sheet: light-blue jersey = ours (add number and surname to roster.json, then prepare); "
-          "white = an opponent (ignore).")
+    print("Check each sheet: our jersey (light blue, or white with blue numbers and trim when we wear white) = ours "
+          "(add number and surname to roster.json, then prepare); another team's jersey = an opponent (ignore).")
 
 
 def cmd_frames(a):
@@ -472,12 +494,12 @@ def _size(path):
 def cmd_archive(a):
     """Keep a finished game's data so it can be re-solved later (as ~/hockey-work/2026-09-27-vs-rr): detections, OCR
     reads, tracks, segments, reviews, periods, results, rink. Drop what is big and can be downloaded or regenerated:
-    the video and audio, crops, overview frames, contact sheets and charts."""
+    the video and audio, crops, overview frames, the scoreboard frames, contact sheets and charts."""
     W = os.path.abspath(a.W)
     if not os.path.exists(f"{W}/shifts_all.csv"):
         sys.exit(f"{W} has no shifts_all.csv: archive a game only after solve and publish")
     before = _size(W)
-    drop = [f"{W}/{n}" for n in ("video.webm", "audio.m4a", "yolo11m.pt", "full/crops", "full/ov")]
+    drop = [f"{W}/{n}" for n in ("video.webm", "audio.m4a", "yolo11m.pt", "scoreboard.npy", "full/crops", "full/ov")]
     drop += glob.glob(f"{W}/*.jpg") + glob.glob(f"{W}/*.png") + glob.glob(f"{W}/rev_p*/*.jpg")
     drop += glob.glob(f"{W}/full/ocr_done_*.txt") + glob.glob(f"{W}/p*/crops")
     for p in drop:
@@ -493,6 +515,9 @@ if __name__ == "__main__":
     sub = ap.add_subparsers(dest="cmd", required=True)
     f = sub.add_parser("fetch"); f.add_argument("url"); f.add_argument("W"); f.add_argument("--limit", type=float)
     f.add_argument("--rink", help="camera geometry (see rink.py); default renton")
+    f.add_argument("--jersey", help="our jersey that game (rink.JERSEYS); default light blue")
+    f.add_argument("--bench", help="left or right: the side of the frame our bench is on (rink.py); default the rink's usual one")
+    j = sub.add_parser("jersey"); j.add_argument("W"); j.add_argument("name")
     s = sub.add_parser("skaters"); s.add_argument("W"); s.add_argument("T0", type=float); s.add_argument("T1", type=float)
     sub.add_parser("prepare").add_argument("W")
     sub.add_parser("goals").add_argument("W")
@@ -515,4 +540,4 @@ if __name__ == "__main__":
         open(f"{a.W}/url.txt", "w").write(a.url)
     {"fetch": cmd_fetch, "skaters": cmd_skaters, "prepare": cmd_prepare, "solve": cmd_solve, "goals": cmd_goals,
      "frames": cmd_frames, "clip": cmd_clip, "publish": cmd_publish, "unknown": cmd_unknown,
-     "archive": cmd_archive}[a.cmd](a)
+     "archive": cmd_archive, "jersey": cmd_jersey}[a.cmd](a)
