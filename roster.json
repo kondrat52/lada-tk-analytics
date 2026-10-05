@@ -17,6 +17,7 @@
     "26": "Babkin",
     "31": "Vasyliev",
     "33": "Nizamutdinov",
+    "49": "Unuchek",
     "61": "Prozhogin",
     "64": "Belov",
     "74": "Bronnikov",
@@ -26,7 +27,6 @@
     "90": "Ivanov"
   },
   "subs": {
-    "49": "Unuchek",
     "69": "Kleiman"
   },
   "lada_player_ids": {

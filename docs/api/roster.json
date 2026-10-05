@@ -47,6 +47,11 @@
    "lada_player_id": null
   },
   {
+   "number": 49,
+   "name": "Unuchek",
+   "lada_player_id": null
+  },
+  {
    "number": 61,
    "name": "Prozhogin",
    "lada_player_id": 11138
@@ -83,12 +88,6 @@
   }
  ],
  "subs": [
-  {
-   "number": 49,
-   "name": "Unuchek",
-   "lada_player_id": null,
-   "sub": true
-  },
   {
    "number": 69,
    "name": "Kleiman",
