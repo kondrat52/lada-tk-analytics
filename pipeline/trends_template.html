@@ -8,7 +8,7 @@
 :root {
   --ice:#f4f8fb; --board:#ffffff; --ink:#13243a; --muted:#5b6b7e; --faint:#8794a3; --rule:#d6e0ea; --grid:#e6edf3;
   --team:#3d8fd6; --redline:#c8323c; --blueline:#1f4fa3;
-  --s-for:#2a78d6; --s-against:#e34948; --spark:#9aa8b8;
+  --s-for:#3d8fd6; --s-against:#c8323c; --spark:#9aa8b8;
   --good:#0a8a0a; --bad:#c43333; --good-bg:#e5f4e5; --bad-bg:#fbe8e8; --tie-bg:#eceff3;
   --display:"Big Shoulders Display","Arial Narrow",sans-serif;
   --body:"Barlow","Helvetica Neue",Arial,sans-serif;
@@ -122,7 +122,10 @@ td .dim { color:var(--faint); }
 const DATA = __DATA__;
 const $ = s => document.querySelector(s);
 const SVGNS = "http://www.w3.org/2000/svg";
-const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+// colours that are CSS variables go through style: some browsers ignore var() in SVG fill/stroke attributes
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) { const v = String(attrs[k]); if ((k === "fill" || k === "stroke") && v.startsWith("var(")) e.style.setProperty(k, v); else e.setAttribute(k, v); }
+  if (parent) parent.appendChild(e); return e; };
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fdate = s => { const [y, m, d] = s.split("-").map(Number); return `${MON[m - 1]} ${d}`; };
