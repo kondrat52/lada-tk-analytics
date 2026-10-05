@@ -8,7 +8,7 @@ Shift sheets for Lada TK's rec hockey games: shifts, ice time and average shift 
 
 | Path | What it is |
 |---|---|
-| `docs/` | The published site (GitHub Pages), including the JSON feed in `docs/api/`. Generated; don't edit by hand. |
+| `docs/` | The published site (GitHub Pages): game pages, the trends page (`trends.html`) and the JSON feed in `docs/api/`. Generated; don't edit by hand. |
 | `API.md` | The JSON feed for apps (e.g. the LADA app): URLs, fields, conventions. |
 | `games/<date>-vs-<opp>/` | One folder per game: `game.json` (periods, penalty kills, video link, notes) and `shifts.csv` (one row per shift). |
 | `roster.json` | Jersey number → surname, LADA player ids, team name and LADA team id. Add new players here. |

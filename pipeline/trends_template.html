@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TEAM__ Trends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: the team site's rink-white page; a form strip of tiles, then game-by-game small multiples, history, players. */
+:root {
+  --ice:#f4f8fb; --board:#ffffff; --ink:#13243a; --muted:#5b6b7e; --faint:#8794a3; --rule:#d6e0ea; --grid:#e6edf3;
+  --team:#3d8fd6; --redline:#c8323c; --blueline:#1f4fa3;
+  --s-for:#2a78d6; --s-against:#e34948; --spark:#9aa8b8;
+  --good:#0a8a0a; --bad:#c43333; --good-bg:#e5f4e5; --bad-bg:#fbe8e8; --tie-bg:#eceff3;
+  --display:"Big Shoulders Display","Arial Narrow",sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --data:"Barlow Condensed","Arial Narrow",sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ice:#0d1826; --board:#13233a; --ink:#e6eef7; --muted:#93a6bb; --faint:#6f8399; --rule:#243a55; --grid:#1d3048;
+  --team:#6cb3f0; --redline:#ef6a72; --blueline:#7fa6ea;
+  --s-for:#3987e5; --s-against:#e66767; --spark:#5d7590;
+  --good:#3fbf3f; --bad:#ef6a6a; --good-bg:#16351f; --bad-bg:#3a1c22; --tie-bg:#22324a; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --ice:#0d1826; --board:#13233a; --ink:#e6eef7; --muted:#93a6bb; --faint:#6f8399; --rule:#243a55; --grid:#1d3048;
+  --team:#6cb3f0; --redline:#ef6a72; --blueline:#7fa6ea;
+  --s-for:#3987e5; --s-against:#e66767; --spark:#5d7590;
+  --good:#3fbf3f; --bad:#ef6a6a; --good-bg:#16351f; --bad-bg:#3a1c22; --tie-bg:#22324a; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--ice); color:var(--ink); font:400 16px/1.5 var(--body); }
+.wrap { max-width:1040px; margin:0 auto; padding-inline:20px; padding-block:28px 64px; display:grid; gap:36px; }
+header { border-bottom:3px solid var(--redline); padding-bottom:14px; display:grid; gap:6px; }
+.eyebrow { font:600 13px/1.2 var(--data); letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+h1 { font:800 clamp(34px,6vw,56px)/.95 var(--display); margin:0; text-wrap:balance; } h1 span { color:var(--team); }
+h2 { font:700 26px/1.1 var(--display); letter-spacing:.02em; text-transform:uppercase; margin:0; }
+h3 { font:600 14px/1.2 var(--data); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0; }
+p.note { color:var(--muted); margin:0; max-width:72ch; }
+.eyebrow a { color:var(--blueline); }
+section { display:grid; gap:14px; min-width:0; }
+.card { background:var(--board); border:1px solid var(--rule); border-radius:4px; padding:14px 16px; min-width:0; }
+
+/* form strip */
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+.tile { background:var(--board); border:1px solid var(--rule); border-radius:4px; padding:12px 14px; display:grid; gap:4px; align-content:start; min-width:0; }
+.tile .label { font:600 12px/1.2 var(--data); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.tile .value { font:600 34px/1 var(--data); }
+.tile .sub { font:500 14px/1.3 var(--data); color:var(--muted); }
+.delta { font:600 14px/1.2 var(--data); display:flex; gap:4px; align-items:center; }
+.delta.good { color:var(--good); } .delta.bad { color:var(--bad); } .delta.flat { color:var(--muted); }
+.chips { display:flex; flex-wrap:wrap; gap:4px; }
+.chip { font:600 13px/1 var(--data); width:22px; height:22px; border-radius:3px; display:grid; place-items:center; }
+.chip.W { background:var(--good-bg); color:var(--good); } .chip.L { background:var(--bad-bg); color:var(--bad); }
+.chip.T { background:var(--tie-bg); color:var(--muted); }
+button.chip { border:0; padding:0; cursor:default; }
+
+/* charts */
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:12px; }
+.chart h3 { margin-bottom:2px; } .chart .cap { font:500 14px/1.3 var(--data); color:var(--muted); margin:0 0 6px; }
+svg.plot { width:100%; height:auto; display:block; overflow:visible; }
+svg text { font-family:var(--data); font-size:13px; fill:var(--muted); }
+svg .axis { stroke:var(--rule); stroke-width:1; } svg .gridl { stroke:var(--grid); stroke-width:1; }
+svg .ref { stroke:var(--faint); stroke-width:1; }
+svg .hit { fill:transparent; cursor:default; } svg .hit:focus { outline:none; } svg .hit:focus-visible { stroke:var(--team); stroke-width:1.5; }
+.legend { display:flex; flex-wrap:wrap; gap:14px; font:500 14px/1 var(--data); color:var(--muted); margin-top:4px; }
+.legend i { display:inline-block; width:12px; height:12px; border-radius:2px; vertical-align:-1px; margin-right:6px; }
+.legend i.line { height:2px; border-radius:1px; vertical-align:4px; width:16px; }
+
+
+/* players */
+.callouts { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+.callout { background:var(--board); border:1px solid var(--rule); border-radius:4px; padding:12px 14px; display:grid; gap:2px; }
+.callout .who { font:800 22px/1.1 var(--display); } .callout .who b { color:var(--team); font-weight:800; }
+.callout .why { font:500 14px/1.3 var(--data); color:var(--muted); }
+.tablebox { overflow-x:auto; background:var(--board); border:1px solid var(--rule); border-radius:4px; }
+table { border-collapse:collapse; width:100%; min-width:860px; font-variant-numeric:tabular-nums; }
+th, td { padding:8px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--rule); vertical-align:middle; }
+th { font:600 12px/1.2 var(--data); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); cursor:pointer; user-select:none; }
+th[aria-sort="descending"]::after { content:" ▼"; } th[aria-sort="ascending"]::after { content:" ▲"; }
+th:focus-visible { outline:2px solid var(--team); outline-offset:2px; }
+td { font:500 16px/1.2 var(--data); } .l { text-align:left; }
+td.num { font:800 20px/1 var(--display); color:var(--team); width:3em; } td.name { font:500 16px/1.2 var(--body); }
+.subtag { font:600 11px/1 var(--data); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-left:6px; }
+td .spark { vertical-align:middle; margin-right:8px; }
+td .dim { color:var(--faint); }
+.chg { font:600 15px/1 var(--data); } .chg.faster, .chg.slower { color:var(--ink); }
+
+/* tooltip */
+#tip { position:fixed; z-index:10; pointer-events:none; background:var(--board); color:var(--ink); border:1px solid var(--rule);
+  border-radius:4px; padding:8px 10px; box-shadow:0 4px 14px rgba(0,0,0,.12); font:500 14px/1.35 var(--data); max-width:260px; }
+#tip .v { font:600 18px/1.1 var(--data); } #tip .k { color:var(--muted); }
+#tip .row { display:flex; gap:8px; align-items:center; } #tip .key { width:12px; height:2px; border-radius:1px; flex:none; }
+@media (prefers-reduced-motion: no-preference) { .tile, .callout { transition:border-color .15s; } }
+</style></head><body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><a href="./">All games</a> · Trends</div>
+    <h1><span>__TEAM__</span> trends</h1>
+    <p class="note" id="intro"></p>
+  </header>
+
+  <section aria-labelledby="form-h">
+    <h2 id="form-h">Team form</h2>
+    <div class="tiles" id="tiles"></div>
+    <p class="note">Arrows compare the latest game with the average of the earlier ones, and appear once a measure has 3 or more games.</p>
+  </section>
+
+  <section aria-labelledby="games-h">
+    <h2 id="games-h">Game by game</h2>
+    <div class="grid2" id="charts"></div>
+  </section>
+
+  <section aria-labelledby="pl-h">
+    <h2 id="pl-h">Players</h2>
+    <div class="callouts" id="callouts"></div>
+    <div class="tablebox"><table id="ptable"><thead><tr id="phead"></tr></thead><tbody id="pbody"></tbody></table></div>
+    <p class="note">Click a column to sort. Sparklines show average shift length per game, oldest to newest, with the latest game marked. "Last vs earlier" compares each player's latest game with the ones before it. Ice share: 1.00× is an equal split of the team's ice time. P3 vs P1: third-period shifts minus first-period ones.</p>
+  </section>
+
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const DATA = __DATA__;
+const $ = s => document.querySelector(s);
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fdate = s => { const [y, m, d] = s.split("-").map(Number); return `${MON[m - 1]} ${d}`; };
+const fdateY = s => { const [y, m, d] = s.split("-").map(Number); return `${MON[m - 1]} ${d}, ${y}`; };
+const mmss = s => `${Math.floor(Math.round(s) / 60)}:${String(Math.round(s) % 60).padStart(2, "0")}`;
+const pct = x => `${Math.round(x * 100)}%`;
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+const signed = (x, d = 0) => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toFixed(d);
+
+const games = DATA.team.slice().sort((a, b) => a.date.localeCompare(b.date));
+games.forEach(g => { g.label = fdate(g.date); g.short = g.opp_code; });
+
+/* ---------- tooltip ---------- */
+const tip = $("#tip");
+function showTip(target, rows, title) {
+  tip.replaceChildren();
+  if (title) tip.appendChild(h("div", "k", title));
+  rows.forEach(r => {
+    const row = h("div", "row");
+    if (r.color) { const k = h("span", "key"); k.style.background = r.color; row.appendChild(k); }
+    row.appendChild(h("span", "v", r.v)); if (r.k) row.appendChild(h("span", "k", r.k));
+    tip.appendChild(row);
+  });
+  tip.hidden = false;
+  const b = target.getBoundingClientRect(), t = tip.getBoundingClientRect();
+  let x = b.left + b.width / 2 - t.width / 2, y = b.top - t.height - 8;
+  if (y < 8) y = b.bottom + 8;
+  x = Math.max(8, Math.min(x, innerWidth - t.width - 8));
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+function hover(node, fn) {
+  node.setAttribute("tabindex", "0");
+  const on = () => { const [rows, title] = fn(); showTip(node, rows, title); };
+  node.addEventListener("pointerenter", on); node.addEventListener("focus", on);
+  node.addEventListener("pointerleave", hideTip); node.addEventListener("blur", hideTip);
+}
+addEventListener("scroll", hideTip, { passive: true });
+
+/* ---------- sparkline ---------- */
+function spark(vals, { w = 96, hgt = 26, lo, hi } = {}) {
+  const s = el("svg", { width: w, height: hgt, viewBox: `0 0 ${w} ${hgt}`, class: "spark", "aria-hidden": "true" });
+  const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null);
+  if (!pts.length) return s;
+  const ys = pts.map(p => p[1]); lo = lo ?? Math.min(...ys); hi = hi ?? Math.max(...ys);
+  if (hi === lo) { hi += 1; lo -= 1; }
+  const X = i => 5 + i * ((w - 10) / Math.max(1, vals.length - 1)), Y = v => hgt - 5 - (v - lo) / (hi - lo) * (hgt - 10);
+  if (pts.length > 1) el("polyline", { points: pts.map(p => `${X(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: "var(--spark)", "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, s);
+  const last = pts[pts.length - 1];
+  el("circle", { cx: X(last[0]), cy: Y(last[1]), r: 4, fill: "var(--team)", stroke: "var(--board)", "stroke-width": 2 }, s);
+  return s;
+}
+
+/* ---------- intro ---------- */
+const span = `${fdateY(games[0].date)} – ${fdateY(games[games.length - 1].date)}`;
+$("#intro").textContent = `${games.length} tracked games, ${span}. Everything here comes from the game videos.`;
+
+/* ---------- form tiles ---------- */
+function deltaInfo(vals, goodDir, fmt) {
+  const v = vals.filter(x => x != null);
+  if (v.length < 3) return null;
+  const last = v[v.length - 1], before = mean(v.slice(0, -1)), d = last - before;
+  const cls = Math.abs(d) < 1e-9 || goodDir === 0 ? "flat" : ((d > 0) === (goodDir > 0) ? "good" : "bad");
+  return { d, cls, text: `${d > 0 ? "▲" : d < 0 ? "▼" : "■"} ${fmt(d)} vs earlier` };
+}
+function tile({ label, value, sub, vals, goodDir = 0, fmt, chips }) {
+  const t = h("div", "tile");
+  t.appendChild(h("div", "label", label));
+  t.appendChild(h("div", "value", value));
+  if (chips) t.appendChild(chips);
+  if (vals) {
+    const s = spark(vals, { w: 120, hgt: 30 }); s.style.marginTop = "2px"; t.appendChild(s);
+    const di = deltaInfo(vals, goodDir, fmt);
+    if (di) t.appendChild(h("div", "delta " + di.cls, di.text));
+  }
+  if (sub) t.appendChild(h("div", "sub", sub));
+  return t;
+}
+const W = games.filter(g => g.result === "W").length, L = games.filter(g => g.result === "L").length, T = games.filter(g => g.result === "T").length;
+const gf = games.reduce((s, g) => s + g.gf, 0), ga = games.reduce((s, g) => s + g.ga, 0);
+const chips = h("div", "chips");
+games.forEach(g => { const c = h("button", "chip " + g.result, g.result); c.type = "button"; c.setAttribute("aria-label", `${g.result} ${g.gf}–${g.ga} vs ${g.opp}`); hover(c, () => [[{ v: `${g.gf}–${g.ga}`, k: g.opp }], fdateY(g.date)]); chips.appendChild(c); });
+const off = games.map(g => g.offence), dfc = games.map(g => g.defence);
+const nZone = off.filter(x => x != null).length;
+const tiles = [
+  tile({ label: "Record", value: `${W}–${L}${T ? "–" + T : ""}`, chips, sub: `${gf} goals for, ${ga} against` }),
+  tile({ label: "Time in offence", value: pct(mean(off.filter(x => x != null))), vals: off, goodDir: 1, fmt: d => signed(d * 100) + " pts", sub: `Share of live play near their net · ${nZone} games` }),
+  tile({ label: "Time in defence", value: pct(mean(dfc.filter(x => x != null))), vals: dfc, goodDir: -1, fmt: d => signed(d * 100) + " pts", sub: `Share of live play near our net · ${nZone} games` }),
+  tile({ label: "Penalties per game", value: (mean(games.map(g => g.penalties))).toFixed(1), vals: games.map(g => g.penalties), goodDir: -1, fmt: d => signed(d, 1), sub: `Goals against on the kill: ${games.reduce((s, g) => s + g.pk_ga, 0)}` }),
+  tile({ label: "Average shift", value: mmss(mean(games.map(g => g.avg_shift))), vals: games.map(g => g.avg_shift), goodDir: 0, fmt: d => signed(d) + " s", sub: `Puck in play ${pct(mean(games.map(g => g.live_pct)))} of game time` }),
+];
+tiles.forEach(t => $("#tiles").appendChild(t));
+
+/* ---------- small-multiple charts ---------- */
+const CW = 460, CH = 220, M = { l: 44, r: 16, t: 14, b: 40 };
+function frame(svg, yTicks, Y, fmtTick) {
+  yTicks.forEach(v => {
+    el("line", { x1: M.l, x2: CW - M.r, y1: Y(v), y2: Y(v), class: "gridl" }, svg);
+    el("text", { x: M.l - 8, y: Y(v) + 4, "text-anchor": "end" }, svg).textContent = fmtTick(v);
+  });
+}
+function xAxis(svg, X) {
+  const step = Math.ceil(games.length / 8);   // at most ~8 labels; the latest game always labeled
+  games.forEach((g, i) => {
+    if ((games.length - 1 - i) % step) return;
+    const t1 = el("text", { x: X(i), y: CH - M.b + 18, "text-anchor": "middle" }, svg); t1.textContent = g.label;
+    const t2 = el("text", { x: X(i), y: CH - M.b + 33, "text-anchor": "middle" }, svg); t2.textContent = g.short;
+  });
+}
+function chartCard(title, cap, legend) {
+  const c = h("div", "card chart");
+  c.appendChild(h("h3", null, title));
+  if (cap) c.appendChild(h("p", "cap", cap));
+  const svg = el("svg", { viewBox: `0 0 ${CW} ${CH}`, class: "plot", role: "img", "aria-label": title });
+  c.appendChild(svg);
+  if (legend) {
+    const lg = h("div", "legend");
+    legend.forEach(([name, color, kind]) => { const s = h("span"); const i = h("i", kind === "line" ? "line" : ""); i.style.background = color; s.appendChild(i); s.appendChild(document.createTextNode(name)); lg.appendChild(s); });
+    c.appendChild(lg);
+  }
+  $("#charts").appendChild(c);
+  return svg;
+}
+const band = (CW - M.l - M.r) / games.length;
+const Xc = i => M.l + band * (i + .5);
+
+// goals: for up, against down
+(() => {
+  const svg = chartCard("Goals", "Goals for above the line, against below.", [["For", "var(--s-for)"], ["Against", "var(--s-against)"]]);
+  const mx = Math.max(3, ...games.map(g => Math.max(g.gf, g.ga)));
+  const mid = M.t + (CH - M.t - M.b) / 2, k = (CH - M.t - M.b) / 2 / mx;
+  const Y = v => mid - v * k;
+  frame(svg, Array.from({ length: 2 * mx + 1 }, (_, i) => i - mx), Y, v => String(Math.abs(v)));
+  el("line", { x1: M.l, x2: CW - M.r, y1: mid, y2: mid, class: "axis" }, svg);
+  const bw = Math.min(24, band * .4);
+  games.forEach((g, i) => {
+    const x = Xc(i);
+    if (g.gf) el("path", { d: roundTop(x - bw / 2, mid, bw, g.gf * k), fill: "var(--s-for)" }, svg);
+    if (g.ga) el("path", { d: roundBottom(x - bw / 2, mid, bw, g.ga * k), fill: "var(--s-against)" }, svg);
+    el("text", { x, y: Y(g.gf) - 6, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, svg).textContent = g.gf;
+    el("text", { x, y: Y(-g.ga) + 16, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, svg).textContent = g.ga;
+    const hit = el("rect", { x: x - band / 2, y: M.t, width: band, height: CH - M.t - M.b, class: "hit" }, svg);
+    hover(hit, () => [[{ v: `${g.gf}–${g.ga}`, k: `${g.result} vs ${g.opp}` }, ...(g.video_ends_early ? [{ v: "", k: "Video ends early; score from LADA" }] : [])], fdateY(g.date)]);
+  });
+  xAxis(svg, Xc);
+})();
+function roundTop(x, base, w, hgt) { const r = Math.min(4, hgt, w / 2); return `M${x},${base}V${base - hgt + r}Q${x},${base - hgt} ${x + r},${base - hgt}H${x + w - r}Q${x + w},${base - hgt} ${x + w},${base - hgt + r}V${base}Z`; }
+function roundBottom(x, base, w, hgt) { const r = Math.min(4, hgt, w / 2); return `M${x},${base}V${base + hgt - r}Q${x},${base + hgt} ${x + r},${base + hgt}H${x + w - r}Q${x + w},${base + hgt} ${x + w},${base + hgt - r}V${base}Z`; }
+
+function lineChart({ title, cap, series, lo, hi, ticks, fmtTick, fmtVal, ref, refLabel, legend, extra }) {
+  const svg = chartCard(title, cap, legend);
+  const Y = v => CH - M.b - (v - lo) / (hi - lo) * (CH - M.t - M.b);
+  frame(svg, ticks, Y, fmtTick);
+  if (ref != null) {
+    el("line", { x1: M.l, x2: CW - M.r, y1: Y(ref), y2: Y(ref), class: "ref" }, svg);
+    if (refLabel) el("text", { x: CW - M.r, y: Y(ref) - 6, "text-anchor": "end" }, svg).textContent = refLabel;
+  }
+  series.forEach(s => {
+    const pts = games.map((g, i) => [i, s.get(g)]).filter(p => p[1] != null);
+    if (pts.length > 1) el("polyline", { points: pts.map(p => `${Xc(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+    pts.forEach(p => el("circle", { cx: Xc(p[0]), cy: Y(p[1]), r: 4.5, fill: s.color, stroke: "var(--board)", "stroke-width": 2 }, svg));
+    if (s.endLabel && pts.length) { const p = pts[pts.length - 1]; el("text", { x: Xc(p[0]) + 9, y: Y(p[1]) + 4, style: "fill:var(--ink);font-weight:600" }, svg).textContent = fmtVal(p[1]); }
+  });
+  games.forEach((g, i) => {
+    const hit = el("rect", { x: Xc(i) - band / 2, y: M.t, width: band, height: CH - M.t - M.b, class: "hit" }, svg);
+    hover(hit, () => [series.map(s => ({ v: s.get(g) == null ? "not measured" : fmtVal(s.get(g)), k: s.name, color: s.color })).concat(extra ? extra(g) : []), `${fdateY(g.date)} · ${g.opp}`]);
+  });
+  xAxis(svg, Xc);
+}
+
+lineChart({
+  title: "Time in offence and defence", cap: "Share of live play near their net and near ours; the rest is the middle of the ice.",
+  series: [{ name: "Offence", color: "var(--s-for)", get: g => g.offence, endLabel: true }, { name: "Defence", color: "var(--s-against)", get: g => g.defence, endLabel: true }],
+  lo: .1, hi: .6, ticks: [.1, .2, .3, .4, .5, .6], fmtTick: v => pct(v), fmtVal: v => pct(v),
+  legend: [["Offence", "var(--s-for)", "line"], ["Defence", "var(--s-against)", "line"]],
+  extra: g => g.offence == null ? [] : [{ v: pct(1 - g.offence - g.defence), k: "middle of the ice" }, { v: g.rink, k: "rink" }],
+});
+lineChart({
+  title: "Average shift", cap: "Team average shift length per game.",
+  series: [{ name: "Average shift", color: "var(--s-for)", get: g => g.avg_shift, endLabel: true }],
+  lo: 90, hi: 150, ticks: [90, 105, 120, 135, 150], fmtTick: v => mmss(v), fmtVal: v => mmss(v),
+  extra: g => [{ v: String(g.skaters), k: "skaters dressed" }],
+});
+lineChart({
+  title: "Penalties taken", cap: "Our minors per game; the tooltip shows goals against on the kill.",
+  series: [{ name: "Penalties", color: "var(--s-against)", get: g => g.penalties, endLabel: true }],
+  lo: 0, hi: 4, ticks: [0, 1, 2, 3, 4], fmtTick: v => String(v), fmtVal: v => String(v),
+  extra: g => [{ v: String(g.pk_ga), k: "goals against on the kill" }, { v: g.pk_min.toFixed(1) + " min", k: "short-handed" }],
+});
+
+
+/* ---------- players ---------- */
+const byNum = {};
+DATA.players.forEach(p => { (byNum[p.num] ??= { num: p.num, name: p.name, sub: p.sub, games: [] }).games.push(p); });
+const order = Object.fromEntries(games.map((g, i) => [g.id, i]));
+const players = Object.values(byNum).map(P => {
+  P.games.sort((a, b) => order[a.game] - order[b.game]);
+  const gs = P.games, series = games.map(g => (gs.find(x => x.game === g.id) || {}).avg_shift ?? null);
+  const n = gs.length, last = gs[n - 1];
+  const change = n >= 3 ? last.avg_shift - mean(gs.slice(0, -1).map(x => x.avg_shift)) : null;
+  const fades = gs.filter(x => x.p1 != null && x.p3 != null).map(x => x.p3 - x.p1);
+  const toi = gs.reduce((s, x) => s + x.toi, 0);
+  return { ...P, gp: n, series, avg: mean(gs.map(x => x.avg_shift)), change,
+    share: mean(gs.map(x => x.toi_share / x.equal_share)),
+    fade: fades.length ? mean(fades) : null, pm: gs.reduce((s, x) => s + x.plus_minus, 0),
+    pm60: gs.reduce((s, x) => s + x.plus_minus, 0) / (toi / 3600) };
+});
+const cand = players.filter(p => p.change != null);
+const fastest = cand.slice().sort((a, b) => a.change - b.change)[0], slowest = cand.slice().sort((a, b) => b.change - a.change)[0];
+const pmBest = players.filter(p => p.gp >= 2).sort((a, b) => b.pm - a.pm || b.pm60 - a.pm60)[0];
+const fadeMost = players.filter(p => p.fade != null && p.gp >= 3).sort((a, b) => b.fade - a.fade)[0];
+function callout(title, p, why) {
+  const c = h("div", "callout"); c.appendChild(h("h3", null, title));
+  const who = h("div", "who"); const b = h("b", null, `#${p.num} `); who.appendChild(b); who.appendChild(document.createTextNode(p.name)); c.appendChild(who);
+  c.appendChild(h("div", "why", why)); $("#callouts").appendChild(c);
+}
+const lastDate = p => fdate(games.find(g => g.id === p.games[p.games.length - 1].game).date);
+if (fastest) callout("Changing faster", fastest, `Shifts ${Math.abs(Math.round(fastest.change))} s shorter on ${lastDate(fastest)} than in earlier games.`);
+if (slowest) callout("Changing slower", slowest, `Shifts ${Math.round(slowest.change)} s longer on ${lastDate(slowest)} than in earlier games.`);
+if (pmBest) callout("Best +/−", pmBest, `${signed(pmBest.pm)} over ${pmBest.gp} games on the ice for goals.`);
+if (fadeMost) callout("Longest late shifts", fadeMost, `Third-period shifts ${Math.round(fadeMost.fade)} s longer than first-period ones.`);
+
+const COLS = [
+  { k: "num", t: "#", l: true, text: true },
+  { k: "name", t: "Player", l: true, text: true },
+  { k: "gp", t: "GP" },
+  { k: "avg", t: "Avg shift" },
+  { k: "change", t: "Last vs earlier" },
+  { k: "share", t: "Ice share" },
+  { k: "fade", t: "P3 vs P1" },
+  { k: "pm", t: "+/−" },
+];
+let sortK = "avg", sortDir = -1;
+COLS.forEach(c => { const th = h("th", c.l ? "l" : "", c.t); th.tabIndex = 0; th.dataset.k = c.k;
+  const go = () => { sortDir = sortK === c.k ? -sortDir : (c.text ? 1 : -1); sortK = c.k; renderPlayers(); };
+  th.addEventListener("click", go); th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  $("#phead").appendChild(th); });
+function td(text, cls) { return h("td", cls, text); }
+function renderPlayers() {
+  const rows = players.slice().sort((a, b) => { const x = a[sortK], y = b[sortK];
+    if (x == null || y == null) return (x == null) - (y == null);
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortDir; });
+  const body = $("#pbody"); body.replaceChildren();
+  rows.forEach(p => {
+    const tr = h("tr");
+    tr.appendChild(td(String(p.num), "l num"));
+    const nm = td(p.name, "l name"); if (p.sub) nm.appendChild(h("span", "subtag", "sub")); tr.appendChild(nm);
+    tr.appendChild(td(String(p.gp)));
+    const a = td(""); a.appendChild(spark(p.series, { lo: 80, hi: 170 })); a.appendChild(document.createTextNode(mmss(p.avg))); tr.appendChild(a);
+    const ch = td(""); if (p.change == null) ch.appendChild(h("span", "dim", "needs 3 games")); else { const s = h("span", "chg " + (p.change < 0 ? "faster" : "slower"), `${p.change < 0 ? "▼" : "▲"} ${Math.abs(Math.round(p.change))} s ${p.change < 0 ? "faster" : "slower"}`); ch.appendChild(s); } tr.appendChild(ch);
+    tr.appendChild(td(`${(p.share).toFixed(2)}×`));
+    tr.appendChild(td(p.fade == null ? "–" : `${signed(Math.round(p.fade))} s`));
+    tr.appendChild(td(signed(p.pm)));
+    body.appendChild(tr);
+  });
+  document.querySelectorAll("#phead th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortK ? (sortDir < 0 ? "descending" : "ascending") : "none"));
+}
+renderPlayers();
+</script>
+</body></html>

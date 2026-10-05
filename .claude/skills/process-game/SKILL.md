@@ -280,7 +280,9 @@ $PY pipeline/run_game.py publish $W <YYYY-MM-DD>-vs-<opp> --opponent <OPP> --eye
 ```
 
 This writes `games/<id>/game.json` + `shifts.csv` (with play time, stoppages and highlights) and rebuilds `docs/`,
-including the JSON feed in `docs/api/` (see API.md). It also looks up the game's LADA API id (`lada_game_id`, which
+including the JSON feed in `docs/api/` (see API.md) and the trends page `docs/trends.html` (`build_trends.py`). It
+also stores time in offence and defence as `zones` in `game.json` (`zones.py`, from the detections, so it works
+until the work folder is gone and again from an archived one). It also looks up the game's LADA API id (`lada_game_id`, which
 the LADA app uses to link the game) from LADA's public "last game" call. If it logs that it couldn't, find the id in
 `https://api.ladaseattle.com/api/v1/game/<LADA id of any game vs this opponent>/opponentGames` (the team's upcoming
 games and their ids: `.../api/v1/team/24/game/next/30`). Add it, and the opponent's full name if you know it, as

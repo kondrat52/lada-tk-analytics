@@ -7,6 +7,7 @@ import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_report import build
 from build_feed import season_table, game_doc, write_feed
+import build_trends
 from roster import SKATERS, SUBS, TEAM, opponent_name
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
@@ -97,8 +98,9 @@ th:focus-visible {{ outline:2px solid var(--team); outline-offset:2px; }}
 td {{ font:500 16px/1.2 var(--data); }} .l {{ text-align:left; }} td.num {{ font:800 20px/1 var(--display); color:var(--team); width:3.2em; }} td.name {{ font:500 16px/1.2 var(--body); }}
 .sub {{ font:600 11px/1 var(--data); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-left:6px; }}
 p.note {{ color:var(--muted); margin:0; max-width:70ch; }}
+.eyebrow a {{ color:var(--blueline); }}
 </style></head><body><div class="wrap">
-<header><div class="eyebrow">LADA Seattle · Rec hockey</div><h1><span>{html.escape(TEAM)}</span> shift sheets</h1>
+<header><div class="eyebrow">LADA Seattle · Rec hockey · <a href="trends.html">Trends</a></div><h1><span>{html.escape(TEAM)}</span> shift sheets</h1>
 <p class="note">Ice time and shifts for every skater, measured from each week's wide-cut game video.</p></header>
 <section><h2>Games</h2><ul class="games">{cards}</ul></section>
 <section><h2>Season</h2><div class="tablebox"><table id="season"><thead><tr><th class="l" tabindex="0">#</th><th class="l" tabindex="0" data-text="1">Player</th><th tabindex="0">GP</th><th tabindex="0">Shifts</th><th tabindex="0">Ice time</th><th tabindex="0" aria-sort="descending">Per game</th><th tabindex="0">Play time</th><th tabindex="0">Avg shift</th><th tabindex="0">Longest</th><th tabindex="0">Shortest</th></tr></thead>
@@ -109,4 +111,5 @@ p.note {{ color:var(--muted); margin:0; max-width:70ch; }}
 open(f"{ROOT}/docs/index.html", "w").write(page)
 open(f"{ROOT}/docs/.nojekyll", "w").write("")
 write_feed(ROOT, games, docs, season)
-print(f"built {len(games)} game(s) -> docs/ (+ api/ feed)")
+build_trends.build(ROOT)
+print(f"built {len(games)} game(s) -> docs/ (+ api/ feed, trends.html)")

@@ -244,5 +244,9 @@
       3863
     ]
   ],
-  "lada_game_id": 32969
+  "lada_game_id": 32969,
+  "zones": {
+    "offence": 0.5078,
+    "defence": 0.2336
+  }
 }

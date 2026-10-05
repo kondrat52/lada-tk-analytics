@@ -137,7 +137,8 @@ mkdir -p games/<date>-vs-<opp> && cp $W/shifts_all.csv games/<date>-vs-<opp>/shi
 # write games/<date>-vs-<opp>/game.json (copy the previous game's and edit periods, video, PKs, notes).
 # Optional extras for the Fun stats section: "fun": {"name_reads": {number: count}} from load_reads()'s
 # name reads, and "pipeline": {"detections", "crops", "reads", "reviewed"} counts from this run.
-$PY pipeline/build_site.py
+$PY pipeline/zones.py $W games/<date>-vs-<opp>/game.json   # time in offence/defence: add as "zones" in game.json
+$PY pipeline/build_site.py                                  # also writes docs/trends.html
 git add -A && git commit -m "Add <date> vs <opp>" && git push
 ```
 

@@ -504,7 +504,7 @@ def cmd_publish(a):
     gj = f"{gd}/game.json"
     if os.path.exists(gj):  # keep hand-written fields (notes, title tweaks) from an earlier publish
         old = json.load(open(gj))
-        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early", "lada_game_id", "opponent_name"):
+        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early", "lada_game_id", "opponent_name", "zones"):
             if old.get(k):
                 game[k] = old[k]
     if not game.get("lada_game_id"):  # links the game to the LADA app's schedule and scores
@@ -513,6 +513,8 @@ def cmd_publish(a):
         game["stoppages"] = json.load(open(f"{W}/stoppages.json"))
     if os.path.exists(f"{W}/highlights.json"):  # [{type, team|player, t, clip, poster, note}] from the clips step
         game["highlights"] = json.load(open(f"{W}/highlights.json"))
+    from zones import zone_shares   # time in offence / defence for the trends page (needs the detections)
+    game["zones"] = zone_shares(f"{W}/full", game) or game.get("zones")
     json.dump(game, open(gj, "w"), indent=2, ensure_ascii=False)
     sh(PY, f"{HERE}/build_site.py")
     log(f"wrote {gd}; site rebuilt in docs/. Review, then commit and push to publish.")
