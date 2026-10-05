@@ -424,6 +424,38 @@ def cmd_solve(a):
     # live play vs stoppages -> "play" column in shifts_all.csv + stoppages.json
     sh(PY, f"{HERE}/stoppages.py", f"{W}/full", f"{W}/periods.json", f"{W}/shifts_all.csv")
     log(f"check {W}/gantt_*.png: the bottom panel should sit at 5 (4 during a penalty kill)")
+    lineup_check(W)
+
+
+def lineup_check(W, min_len=15):
+    """Stretches of min_len+ seconds where the published shifts (shifts_all.csv) don't put 5 of us on the ice (4
+    during a penalty kill), and goals in highlights.json without that many on the ice. Each one is a missed player
+    or a bad label to look at; fix it with a review_zfix.txt (see the skill) and solve again."""
+    A = pd.read_csv(f"{W}/shifts_all.csv")
+    Ps = periods(W)
+    def target(t):
+        return 4 if any(k["start"] <= t < k["end"] for P in Ps for k in P.get("pk", [])) else 5
+    def on(t):
+        return sorted(int(p) for p in A[(A.t0 <= t) & (A.t1 > t)].player)
+    bad = []
+    for P in Ps:
+        run = None
+        for t in range(P["start"], P["end"] + 1):
+            d = (len(on(t)) - target(t)) if t < P["end"] else None
+            if run and d != run[1]:
+                if t - run[0] >= min_len:
+                    bad.append(f"  {P['label']} {run[0]}-{t} ({t - run[0]} s): {target(run[0]) + run[1]} on the ice, "
+                               f"expected {target(run[0])}")
+                run = None
+            if d and not run:
+                run = (t, d)
+    hp = f"{W}/highlights.json"
+    for h in (json.load(open(hp)) if os.path.exists(hp) else []):
+        if h["type"] == "goal" and len(on(h["t"])) != target(h["t"]):
+            bad.append(f"  goal at {h['t']}: on the ice {on(h['t'])}, expected {target(h['t'])} skaters")
+    log("lineup check: " + ("OK" if not bad else f"{len(bad)} to look at"))
+    for b in bad:
+        print(b)
 
 
 def lada_game_id(date):
@@ -454,6 +486,8 @@ def cmd_publish(a):
     from roster import TEAM, OPPONENTS
     import datetime
     reads, names = load_reads(f"{W}/full")
+    played = set(pd.read_csv(f"{W}/shifts_all.csv").player)
+    lineup_check(W)
     date = a.date or a.game_id[:10]
     d = datetime.date.fromisoformat(date)
     game = dict(
@@ -463,7 +497,7 @@ def cmd_publish(a):
         nets={P["label"]: P["net"] for P in Ps},
         penalty_kills=[dict(period=P["label"], **k) for P in Ps for k in P.get("pk", [])],
         notes=[], video_ends_early=bool(a.video_ends_early),
-        fun=dict(name_reads={str(k): int(v) for k, v in names.num.value_counts().items()}),
+        fun=dict(name_reads={str(k): int(v) for k, v in names.num.value_counts().items() if k in played}),
         pipeline=dict(detections=sum(1 for _ in open(f"{W}/full/dets.csv")),
                       crops=len(os.listdir(f"{W}/full/crops")), reads=int(len(reads)),
                       reviewed=int(sum(len(pd.read_csv(m)) for m in glob.glob(f"{W}/rev_p*/manifest.csv")))))

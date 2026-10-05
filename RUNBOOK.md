@@ -28,12 +28,14 @@ FF=$($PY -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())")
 $FF -loglevel error -ss 600 -i $W/video.webm -frames:v 1 $W/frame600.png
 echo '{"rink": "snoqualmie"}' > $W/full/rink.json   # not for Renton, the default
 # home games (white jerseys, right bench at Renton): {"rink": "renton", "jersey": "white", "bench": "right"}
+# Kirkland (fisheye, benches behind the far boards, home right): {"rink": "kirkland", "jersey": "white", "bench": "right"}
 $PY pipeline/boards.py $W/frame600.png $W/full     # writes boards_poly.npy
 ```
 
 The camera geometry per rink (detection crop, board band, ice area, our bench, nets) lives in `pipeline/rink.py`.
-Check the fitted boards line on the frame, and that the benches are where the rink's class expects them, by viewing
-a crop of the frame. If the camera moved, or it's a new rink, adjust or add a class there before detecting: the
+Check the fitted boards line on the frame all the way to its edges, and that the benches are where the rink's class
+expects them, by viewing a crop of the frame. Yellow lettering on signs above the boards pulls the fit up; a rink's
+`board_lowest = True` makes `boards.py` keep only the lowest yellow run in each column (Kirkland). If the camera moved, or it's a new rink, adjust or add a class there before detecting: the
 detection crop (`crop_top`) must include the heads of players standing at the far boards.
 
 Our players are told apart by jersey colour (`JERSEYS` in `rink.py`: light blue by default, or white with blue
@@ -71,7 +73,10 @@ second with finer sheets.
 Ask about penalties: who, and roughly when. A penalty kill shows up as 4 of our skaters on the ice.
 The arena scoreboard is in frame at both rinks: `pipeline/scoreboard.py $W` keeps its brightest frame per second
 (the LEDs flicker), and `pipeline/scoreboard.py $W out.jpg t1 t2 ...` sheets it. It shows the period clock, the
-score, and each penalty with the player's number and time left.
+score, and each penalty with the player's number and time left. Check which team each penalty belongs to by who
+skates into a penalty box: scorekeepers have put penalties on the wrong panel. When the empty-ice breaks aren't
+found (Kirkland: short breaks with a referee on the ice), take the periods from the clock (00.0, a 1:00
+intermission countdown, then 18:00). A penalty carried over an intermission is a penalty kill in both periods.
 
 ## 6. Track each period
 
@@ -85,7 +90,8 @@ Repeat for p2 and p3. Finish OCR (step 4) before this step, and never re-run `ru
 after its review (step 7) has started: review rows point at segment numbers, and a new segmentation scrambles
 them. Look at `roster_card.jpg`. Every row should be one player. The card only has roster numbers, so run
 `run_game.py unknown $W` before tracking to find new or sub players (numbers read hundreds of times that aren't
-in `roster.json`, with a crop sheet each): add ours to `roster.json`; other teams' jerseys are opponents.
+in `roster.json`, with a crop sheet each): add ours to `roster.json`, team members under `skaters` and subs under
+`subs` (ask which); other teams' jerseys are opponents.
 
 ## 7. Visual review (Claude subagents, ~15 min in parallel)
 
@@ -99,7 +105,8 @@ Split each period's `sheet_*.jpg` across 4–5 subagents (~6 sheets each), with 
 > switch players partway through (a swap). Give a number only if reasonably confident (high = number or name
 > visible; med = distinctive look with no lookalike); otherwise "?". Report swaps with the switch time.
 > Opponents (white) and referees in tiles are noise. Write CSV to `$W/rev_pN/review_<letter>.txt` with header
-> `row_id,player,confidence,switch_time,player2,confidence2,note`, one line per row, no commas in notes.
+> `row_id,player,confidence,switch_time,player2,confidence2,note`, one line per row, no commas in notes, row_id
+> as on the tiles (R168).
 > Reply with just the number of rows written.
 
 ## 8. Solve and check
@@ -111,7 +118,9 @@ $PY pipeline/gantt.py $W/p1/shifts_final.csv $W/p1/segs_final.csv $W/gantt_p1.pn
 ```
 
 In the Gantt chart the bottom panel should sit at 5 (4 on a PK). Long stretches at 4 or 6 mean a missed
-player, a penalty, or a bad label: inspect with crop sheets before trusting the numbers.
+player, a penalty, or a bad label: inspect with crop sheets before trusting the numbers. `run_game.py solve` lists
+them (and goals without 5 of us on the ice) as a lineup check. Labels you decide by hand go in
+`$W/rev_pN/review_zfix.txt` (same CSV), which overrides the reviewers' "?" answers.
 
 ## 9. Play time and highlights
 

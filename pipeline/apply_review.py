@@ -9,9 +9,10 @@ def parse_review(text):
     cols = ["row_id", "player", "confidence", "switch_time", "player2", "confidence2", "note"]
     rows = []
     for l in text.splitlines():
-        if not re.match(r"^\s*R\d+\s*,", l):
+        if not re.match(r"^\s*R?\d+\s*,", l):   # reviewers sometimes drop the R
             continue
         f = [x.strip().strip('"') for x in l.split(",")]
+        f[0] = "R" + f[0].lstrip("R")
         f = f[:6] + [",".join(f[6:])] if len(f) > 7 else f + [""] * (7 - len(f))
         f[1] = f[1].lstrip("#"); f[4] = f[4].lstrip("#")
         rows.append(f)
