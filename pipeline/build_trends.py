@@ -1,5 +1,6 @@
 """build_trends.py : docs/trends.html, the team's trends across games, from games/*/game.json + shifts.csv.
-build_site.py runs it. Time in offence and defence come from game.json's `zones` (zones.py, filled in on publish)."""
+build_site.py runs it. Time in offence and defence come from game.json's `zones` (zones.py, filled in on publish),
+shots on goal from its `shots` (shots.py, read off the arena scoreboard)."""
 import os, sys, json, glob
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +37,8 @@ def game_rows(gd):
     pks = game.get("penalty_kills", [])
     in_pk = lambda t: any(k["start"] <= t < k["end"] for k in pks)
     zones = game.get("zones") or {}
+    shots = game.get("shots") or {}          # {"P1": [ours, theirs], ...} from the arena scoreboard
+    sp = [shots[p["label"]] for p in periods if p["label"] in shots] or None
     team = dict(
         id=game["id"], date=game["date"], opp=opponent_name(game), opp_code=game["opponent"],
         rink=(game.get("eyebrow") or "").split("·")[-1].strip(), gf=gf, ga=ga,
@@ -43,7 +46,8 @@ def game_rows(gd):
         skaters=int(A.player.nunique()), avg_shift=float(A.dur.mean()), live_pct=float(live.sum() / length),
         penalties=len(penalties(game)), pk_ga=sum(h["team"] == "against" and in_pk(h["t"]) for h in goals),
         pk_min=float(sum(k["end"] - k["start"] for k in pks) / 60),
-        offence=zones.get("offence"), defence=zones.get("defence"))
+        offence=zones.get("offence"), defence=zones.get("defence"),
+        sp=sp, sf=sum(x[0] for x in sp) if sp else None, sa=sum(x[1] for x in sp) if sp else None)
     players = []
     team_toi = A.dur.sum()
     for num, s in A.groupby("player"):

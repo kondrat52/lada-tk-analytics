@@ -54,6 +54,16 @@ def _when_where(game):
     return (parts[1] if len(parts) > 1 else None), (parts[2] if len(parts) > 2 else None)
 
 
+def _shots(game):
+    """Shots on goal from the arena scoreboard: totals and per period, or None when not read."""
+    S = game.get("shots")
+    if not S:
+        return None
+    per = [{"label": p["label"], "for": S[p["label"]][0], "against": S[p["label"]][1]}
+           for p in game["periods"] if p["label"] in S]
+    return {"for": sum(x["for"] for x in per), "against": sum(x["against"] for x in per), "periods": per}
+
+
 def game_doc(game, A, players, highlights):
     """players/highlights: as computed for the game page (build_report.player_rows / highlights)."""
     base = SITE_URL.rstrip("/") + f"/games/{game['id']}/"
@@ -75,6 +85,7 @@ def game_doc(game, A, players, highlights):
         "video_ends_early": bool(game.get("video_ends_early")),
         "goals_on_video": {"for": sum(1 for h in hl if h.get("team") == "for"),
                            "against": sum(1 for h in hl if h.get("team") == "against")},
+        "shots": _shots(game),
         "periods": [{"label": p["label"], "start": p["start"], "end": p["end"], "length": p["end"] - p["start"]}
                     for p in game["periods"]],
         "penalty_kills": [{"period": k["period"], "start": k["start"], "end": k["end"],
@@ -131,6 +142,8 @@ def write_feed(root, games, docs_by_game, season):
                    "opponent": {"code": g["opponent"], "name": g.get("opponent_name") or OPPONENTS.get(g["opponent"])},
                    "lada_game_id": g.get("lada_game_id"),
                    "goals_on_video": docs_by_game[g["id"]]["goals_on_video"],
+                   "shots": ({k: docs_by_game[g["id"]]["shots"][k] for k in ("for", "against")}
+                             if docs_by_game[g["id"]]["shots"] else None),
                    "highlights": len(docs_by_game[g["id"]]["highlights"]),
                    "page_url": f"{site}/games/{g['id']}/", "json_url": f"{site}/api/games/{g['id']}.json"}
                   for g in ordered],

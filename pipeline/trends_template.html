@@ -210,10 +210,18 @@ const chips = h("div", "chips");
 games.forEach(g => { const c = h("button", "chip " + g.result, g.result); c.type = "button"; c.setAttribute("aria-label", `${g.result} ${g.gf}–${g.ga} vs ${g.opp}`); hover(c, () => [[{ v: `${g.gf}–${g.ga}`, k: g.opp }], fdateY(g.date)]); chips.appendChild(c); });
 const off = games.map(g => g.offence), dfc = games.map(g => g.defence);
 const nZone = off.filter(x => x != null).length;
+const shotG = games.filter(g => g.sf != null), nShots = shotG.length;
+const sum = (a, k) => a.reduce((s, g) => s + g[k], 0);
+const shotGF = sum(shotG, "gf"), shotGA = sum(shotG, "ga");
 const tiles = [
   tile({ label: "Record", value: `${W}–${L}${T ? "–" + T : ""}`, chips, sub: `${gf} goals for, ${ga} against` }),
   tile({ label: "Time in offence", value: pct(mean(off.filter(x => x != null))), vals: off, goodDir: 1, fmt: d => signed(d * 100) + " pts", sub: `Share of live play near their net · ${nZone} games` }),
   tile({ label: "Time in defence", value: pct(mean(dfc.filter(x => x != null))), vals: dfc, goodDir: -1, fmt: d => signed(d * 100) + " pts", sub: `Share of live play near our net · ${nZone} games` }),
+  ...(nShots ? [
+  tile({ label: "Shots per game", value: `${mean(shotG.map(g => g.sf)).toFixed(0)}–${mean(shotG.map(g => g.sa)).toFixed(0)}`, vals: games.map(g => g.sf == null ? null : g.sf - g.sa), goodDir: 1, fmt: d => signed(d, 0) + " shots", sub: `Ours–theirs · sparkline: shot difference · ${nShots} games` }),
+  tile({ label: "Shooting %", value: (shotGF / sum(shotG, "sf") * 100).toFixed(1) + "%", vals: games.map(g => g.sf ? g.gf / g.sf : null), goodDir: 1, fmt: d => signed(d * 100, 1) + " pts", sub: `${shotGF} goals on ${sum(shotG, "sf")} shots` }),
+  tile({ label: "Save %", value: (1 - shotGA / sum(shotG, "sa")).toFixed(3).replace(/^0/, ""), vals: games.map(g => g.sa ? 1 - g.ga / g.sa : null), goodDir: 1, fmt: d => signed(d * 1000, 0) + " pts", sub: `${shotGA} goals on ${sum(shotG, "sa")} shots` }),
+  ] : []),
   tile({ label: "Penalties per game", value: (mean(games.map(g => g.penalties))).toFixed(1), vals: games.map(g => g.penalties), goodDir: -1, fmt: d => signed(d, 1), sub: `Goals against on the kill: ${games.reduce((s, g) => s + g.pk_ga, 0)}` }),
   tile({ label: "Average shift", value: mmss(mean(games.map(g => g.avg_shift))), vals: games.map(g => g.avg_shift), goodDir: 0, fmt: d => signed(d) + " s", sub: `Puck in play ${pct(mean(games.map(g => g.live_pct)))} of game time` }),
 ];
@@ -296,6 +304,48 @@ function lineChart({ title, cap, series, lo, hi, ticks, fmtTick, fmtVal, ref, re
   xAxis(svg, Xc);
 }
 
+if (nShots) (() => {
+  const svg = chartCard("Shots on goal", "Our shots above the line, theirs below, from the arena scoreboard.", [["Ours", "var(--s-for)"], ["Theirs", "var(--s-against)"]]);
+  const mx = Math.max(10, ...shotG.map(g => Math.max(g.sf, g.sa))), step = mx > 30 ? 20 : 10;
+  const top = Math.ceil(mx / step) * step, mid = M.t + (CH - M.t - M.b) / 2, k = (CH - M.t - M.b) / 2 / top;
+  const Y = v => mid - v * k;
+  const ticks = []; for (let v = -top; v <= top; v += step) ticks.push(v);
+  frame(svg, ticks, Y, v => String(Math.abs(v)));
+  el("line", { x1: M.l, x2: CW - M.r, y1: mid, y2: mid, class: "axis" }, svg);
+  const bw = Math.min(24, band * .4);
+  games.forEach((g, i) => {
+    if (g.sf == null) return;
+    const x = Xc(i);
+    el("path", { d: roundTop(x - bw / 2, mid, bw, Math.max(1, g.sf * k)), fill: "var(--s-for)" }, svg);
+    el("path", { d: roundBottom(x - bw / 2, mid, bw, Math.max(1, g.sa * k)), fill: "var(--s-against)" }, svg);
+    el("text", { x, y: Y(g.sf) - 6, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, svg).textContent = g.sf;
+    el("text", { x, y: Y(-g.sa) + 16, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, svg).textContent = g.sa;
+    const hit = el("rect", { x: x - band / 2, y: M.t, width: band, height: CH - M.t - M.b, class: "hit" }, svg);
+    hover(hit, () => [[{ v: `${g.sf}–${g.sa}`, k: "shots" }, { v: g.sp.map(p => p.join("–")).join(", "), k: "by period" }, { v: `${g.gf}–${g.ga}`, k: "goals" }], `${fdateY(g.date)} · ${g.opp}`]);
+  });
+  xAxis(svg, Xc);
+})();
+if (nShots) (() => {
+  const np = Math.max(...shotG.map(g => g.sp.length));
+  const per = Array.from({ length: np }, (_, i) => { const gs = shotG.filter(g => g.sp[i]); return [mean(gs.map(g => g.sp[i][0])), mean(gs.map(g => g.sp[i][1]))]; });
+  const svg = chartCard("Shots by period", `Average per game over ${nShots} games.`, [["Ours", "var(--s-for)"], ["Theirs", "var(--s-against)"]]);
+  const top = Math.max(10, Math.ceil(Math.max(...per.flat()) / 5) * 5);
+  const Y = v => CH - M.b - v / top * (CH - M.t - M.b);
+  const ticks = []; for (let v = 0; v <= top; v += 5) ticks.push(v);
+  frame(svg, ticks, Y, v => String(v));
+  el("line", { x1: M.l, x2: CW - M.r, y1: Y(0), y2: Y(0), class: "axis" }, svg);
+  const b3 = (CW - M.l - M.r) / np, bw = 22;
+  per.forEach(([a, b], i) => {
+    const x = M.l + b3 * (i + .5), hgt = v => Math.max(1, v / top * (CH - M.t - M.b));
+    el("path", { d: roundTop(x - bw - 1, Y(0), bw, hgt(a)), fill: "var(--s-for)" }, svg);
+    el("path", { d: roundTop(x + 1, Y(0), bw, hgt(b)), fill: "var(--s-against)" }, svg);
+    el("text", { x: x - bw / 2 - 1, y: Y(a) - 6, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, svg).textContent = a.toFixed(1);
+    el("text", { x: x + bw / 2 + 1, y: Y(b) - 6, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, svg).textContent = b.toFixed(1);
+    el("text", { x, y: CH - M.b + 18, "text-anchor": "middle" }, svg).textContent = `Period ${i + 1}`;
+    const hit = el("rect", { x: x - b3 / 2, y: M.t, width: b3, height: CH - M.t - M.b, class: "hit" }, svg);
+    hover(hit, () => [[{ v: a.toFixed(1), k: "ours", color: "var(--s-for)" }, { v: b.toFixed(1), k: "theirs", color: "var(--s-against)" }], `Period ${i + 1}, average per game`]);
+  });
+})();
 lineChart({
   title: "Time in offence and defence", cap: "Share of live play near their net and near ours; the rest is the middle of the ice.",
   series: [{ name: "Offence", color: "var(--s-for)", get: g => g.offence, endLabel: true }, { name: "Defence", color: "var(--s-against)", get: g => g.defence, endLabel: true }],

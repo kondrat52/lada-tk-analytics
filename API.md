@@ -43,14 +43,15 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
   "games": [{
     "id": "2026-09-27-vs-rr", "date": "2026-09-27", "title": "...", "subtitle": "Sun Sep 27, 2026 · 7:50 PM · Renton",
     "opponent": {"code": "RR", "name": null}, "lada_game_id": 32969,
-    "goals_on_video": {"for": 1, "against": 2}, "highlights": 4,
+    "goals_on_video": {"for": 1, "against": 2}, "shots": {"for": 40, "against": 16}, "highlights": 4,
     "page_url": ".../games/2026-09-27-vs-rr/", "json_url": ".../api/games/2026-09-27-vs-rr.json"
   }]
 }
 ```
 
 `time` and `rink` (e.g. `"7:50 PM"`, `"Renton"`) are also on each game file. `goals_on_video` counts the goals found in the recording. It isn't the official score: the recording can end
-before the final horn (`video_ends_early` in the game file).
+before the final horn (`video_ends_early` in the game file). `shots` is shots on goal as the arena scoreboard counted
+them (`for` = us), or `null` for a game whose board wasn't read.
 
 ## `games/<id>.json`
 
@@ -58,6 +59,7 @@ before the final horn (`video_ends_early` in the game file).
 |---|---|
 | `periods[]` | `{label: "P1", start, end, length}` in video seconds |
 | `penalty_kills[]` | `{period, start, end, player}`: our skater in the box; 4 skaters on the ice for the window |
+| `shots` | Shots on goal from the arena scoreboard: `{for, against, periods[]}`, `periods[]` with `{label, for, against}`; `null` when not read. Read at the end of each period, so a shot counted late by the scorekeeper lands in the next one |
 | `players[]` | Sorted by ice time: `shifts, toi, play, avg_shift, median_shift, longest_shift, shortest_shift`, and `periods[]` with `{label, shifts, toi, avg_shift}` |
 | `shifts[]` | Every shift: `{number, period, start, end, duration, play, start_in_period}` |
 | `highlights[]` | `{type: "goal" \| "penalty", team: "for" \| "against" (goals), player (penalties), t, period, t_in_period, clip_url, poster_url, note, on_ice[]}`. Clips are 1280×720 H.264 MP4 without audio, about 5 MB. `on_ice` lists our skaters on the ice for a goal |

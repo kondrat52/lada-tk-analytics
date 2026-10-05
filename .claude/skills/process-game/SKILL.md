@@ -63,7 +63,7 @@ U=$($PY -m yt_dlp -g -f 313 "<url>"); $FF -loglevel error -ss 600 -i "$U" -frame
 ```
 
 then add a class (crop above the heads of players at the far boards, board band, ice polygon, benches, nets,
-scoreboard box), run `boards.py` on the frame and draw its curve over it. Check it all the way to the frame edges:
+scoreboard box, and `shots_boxes`: the home and guest shot digits inside the scoreboard crop), run `boards.py` on the frame and draw its curve over it. Check it all the way to the frame edges:
 yellow lettering on signs above the boards pulls the fit up (Kirkland's HOCKEY sign), which `board_lowest = True`
 fixes. A wrong crop silently loses the far-side players. Also run YOLO on a few frames and check the jersey
 colour test (`rink.JERSEYS`) under that rink's lighting before starting detection.
@@ -98,7 +98,17 @@ $PY pipeline/scoreboard.py $W $W/sb.jpg $(seq 30 60 4000)        # the board eve
 ```
 
 From that sheet: which side we are (home/guest; LADA's `playHome` says too), when the score changed, which
-penalty panels lit up and for whom, and the clock at the end. In the last minute it shows tenths, so you can tell
+penalty panels lit up and for whom, and the clock at the end.
+
+Shots on goal come from the same board (after `periods.json` is right):
+
+```sh
+$PY pipeline/shots.py $W --us <home|guest>      # ~5 min: OCR every second -> W/shots.json + W/shots_check.jpg
+```
+
+Read `shots_check.jpg` (the board 25 s after each period, when scorekeepers have caught up): the cumulative shots for
+both sides. The OCR is close at Renton and often wrong at Kirkland, so fix `"periods"` in `W/shots.json` to match the
+board (`[ours, theirs]` per period, not cumulative), then set `"checked": true`. `publish` only takes checked shots. In the last minute it shows tenths, so you can tell
 whether the video reaches the final horn. If it doesn't (play still going in `video_end.jpg` and time left on the
 clock), pass `--video-ends-early` when publishing.
 

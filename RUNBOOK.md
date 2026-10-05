@@ -77,6 +77,8 @@ score, and each penalty with the player's number and time left. Check which team
 skates into a penalty box: scorekeepers have put penalties on the wrong panel. When the empty-ice breaks aren't
 found (Kirkland: short breaks with a referee on the ice), take the periods from the clock (00.0, a 1:00
 intermission countdown, then 18:00). A penalty carried over an intermission is a penalty kill in both periods.
+`pipeline/shots.py $W --us home|guest` reads shots on goal off the board into `$W/shots.json`; check it against
+`$W/shots_check.jpg`, fix the per-period counts, and set `"checked": true` so publish puts them in game.json.
 
 ## 6. Track each period
 

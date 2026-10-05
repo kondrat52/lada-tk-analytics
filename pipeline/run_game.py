@@ -504,7 +504,8 @@ def cmd_publish(a):
     gj = f"{gd}/game.json"
     if os.path.exists(gj):  # keep hand-written fields (notes, title tweaks) from an earlier publish
         old = json.load(open(gj))
-        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early", "lada_game_id", "opponent_name", "zones"):
+        for k in ("notes", "title", "eyebrow", "highlights", "video_ends_early", "lada_game_id", "opponent_name", "zones",
+                  "shots"):
             if old.get(k):
                 game[k] = old[k]
     if not game.get("lada_game_id"):  # links the game to the LADA app's schedule and scores
@@ -513,6 +514,8 @@ def cmd_publish(a):
         game["stoppages"] = json.load(open(f"{W}/stoppages.json"))
     if os.path.exists(f"{W}/highlights.json"):  # [{type, team|player, t, clip, poster, note}] from the clips step
         game["highlights"] = json.load(open(f"{W}/highlights.json"))
+    if os.path.exists(f"{W}/shots.json") and json.load(open(f"{W}/shots.json")).get("checked"):
+        game["shots"] = json.load(open(f"{W}/shots.json"))["periods"]   # shots.py, once checked against the board
     from zones import zone_shares   # time in offence / defence for the trends page (needs the detections)
     game["zones"] = zone_shares(f"{W}/full", game) or game.get("zones")
     json.dump(game, open(gj, "w"), indent=2, ensure_ascii=False)

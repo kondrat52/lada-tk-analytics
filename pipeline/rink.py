@@ -26,6 +26,7 @@ class Renton:
     min_break = 25                # seconds of empty open ice that make an intermission
     bench_side = "left"           # our usual bench; rink.json "bench" can pick the other one
     scoreboard = (3290, 690, 130, 80)  # x, y, w, h of the arena scoreboard (scoreboard.py)
+    shots_boxes = {"home": (47, 39, 59, 50), "guest": (65, 40, 78, 51)}   # shots-on-goal digits, in that crop (shots.py)
 
     def __init__(self, board_poly, bench=None):
         self.P = board_poly
@@ -80,6 +81,7 @@ class Snoqualmie(Renton):
     min_break = 10
     bench_side = "right"
     scoreboard = (1790, 262, 280, 116)
+    shots_boxes = {"home": (136, 76, 157, 95), "guest": (171, 76, 197, 95)}
 
     def __init__(self, board_poly, bench=None):
         if bench and bench != self.bench_side:
@@ -128,6 +130,7 @@ class Kirkland(Renton):
     bench_side = "right"
     BENCHES = {"left": (1340, 1720), "right": (2160, 2560)}   # x at the boards, with Renton's ~30 px margins
     scoreboard = (358, 396, 136, 82)
+    shots_boxes = {"home": (55, 54, 71, 68), "guest": (73, 52, 90, 65)}
     # the ice inside the end and near boards (the far boards curve is the top)
     ICE = Path([(0, 0), (3840, 0), (3840, 690), (3800, 717), (3707, 917), (3653, 1037), (3560, 1277),
                 (3440, 1450), (3400, 1536), (560, 1536), (400, 1317), (333, 1183), (260, 1090), (150, 870),

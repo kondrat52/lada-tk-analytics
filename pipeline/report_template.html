@@ -169,6 +169,12 @@ document.getElementById("facts").innerHTML = [
   [nsh, "shifts"],
   [fmt(tot / nsh), "average shift"],
 ].concat((() => {
+  const S = DATA.shots;   // {"P1": [ours, theirs], ...} from the arena scoreboard
+  if (!S) return [];
+  const per = P.filter(p => S[p.label]).map(p => S[p.label]);
+  const f = per.reduce((a, x) => a + x[0], 0), g = per.reduce((a, x) => a + x[1], 0);
+  return [[`${f}–${g}`, `shots on goal · by period ${per.map(x => x.join("–")).join(", ")}`]];
+})()).concat((() => {
   const top = [...DATA.players].sort((a, b) => b.toi - a.toi)[0];
   const ls = DATA.shifts.reduce((a, s) => (s.t1 - s.t0 > a.t1 - a.t0 ? s : a));
   const lp = DATA.players.find(p => p.num === ls.player);

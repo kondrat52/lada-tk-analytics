@@ -26,6 +26,10 @@
     "for": 2,
     "against": 1
    },
+   "shots": {
+    "for": 24,
+    "against": 28
+   },
    "highlights": 5,
    "page_url": "https://kondrat52.github.io/lada-tk-analytics/games/2026-10-04-vs-cv/",
    "json_url": "https://kondrat52.github.io/lada-tk-analytics/api/games/2026-10-04-vs-cv.json"
@@ -45,6 +49,10 @@
    "goals_on_video": {
     "for": 1,
     "against": 2
+   },
+   "shots": {
+    "for": 40,
+    "against": 16
    },
    "highlights": 4,
    "page_url": "https://kondrat52.github.io/lada-tk-analytics/games/2026-09-27-vs-rr/",
@@ -66,6 +74,10 @@
     "for": 3,
     "against": 1
    },
+   "shots": {
+    "for": 38,
+    "against": 26
+   },
    "highlights": 6,
    "page_url": "https://kondrat52.github.io/lada-tk-analytics/games/2026-09-20-vs-so/",
    "json_url": "https://kondrat52.github.io/lada-tk-analytics/api/games/2026-09-20-vs-so.json"
@@ -85,6 +97,10 @@
    "goals_on_video": {
     "for": 3,
     "against": 0
+   },
+   "shots": {
+    "for": 37,
+    "against": 14
    },
    "highlights": 4,
    "page_url": "https://kondrat52.github.io/lada-tk-analytics/games/2026-09-13-vs-ttt/",
