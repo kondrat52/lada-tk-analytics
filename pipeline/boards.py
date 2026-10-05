@@ -8,11 +8,15 @@ img = cv2.imread(sys.argv[1]); out = sys.argv[2]
 H, W = img.shape[:2]
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 m = (hsv[..., 0] >= 18) & (hsv[..., 0] <= 35) & (hsv[..., 1] >= 90) & (hsv[..., 2] >= 110)
-b0, b1 = rink(out).board_band
+R = rink(out)
+b0, b1 = R.board_band
 y0, y1 = int(H * b0), int(H * b1)
 xs, ys = [], []
 for x in range(0, W, 20):
     col = np.where(m[y0:y1, x])[0]
+    if R.board_lowest and len(col):   # yellow signs above the boards: keep the lowest yellow run
+        gaps = np.where(np.diff(col) > 3)[0]
+        col = col[gaps[-1] + 1:] if len(gaps) else col
     if len(col) >= 2:
         xs.append(x); ys.append(y0 + np.median(col))
 xs, ys = np.array(xs), np.array(ys)

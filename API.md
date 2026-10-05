@@ -20,6 +20,7 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
   stoppages included (there is no game clock in the video). `play` is live play only, estimated from the video.
   It's an upper bound, since quick whistles can slip through.
 - **Players** appear as `{number, name, lada_player_id}`. `name` is the surname as printed on the jersey.
+  A substitute (a skater who isn't on the team and subbed in) also has `sub: true`.
   `lada_player_id` is the player's id on the LADA team roster (team 24), or `null` if not matched yet. Join on
   `lada_player_id` when it's there; jersey numbers can differ between the jersey and the LADA roster.
 - **Games** have a date-slug `id` (`2026-09-27-vs-rr`). `lada_game_id` is the LADA API game id (publishing fills
@@ -73,4 +74,5 @@ play, avg_shift, longest_shift, shortest_shift, games[]}`. `games[]` lists that 
 
 ## `roster.json`
 
-`skaters[]` and `goalies[]`, each `{number, name, lada_player_id}`. Edit the repo's `roster.json` to change them.
+`skaters[]` and `goalies[]`, each `{number, name, lada_player_id}`, and `subs[]`: skaters who have subbed for the
+team without being on it. Edit the repo's `roster.json` to change them.

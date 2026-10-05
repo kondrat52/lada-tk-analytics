@@ -7,7 +7,7 @@ import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_report import build
 from build_feed import season_table, game_doc, write_feed
-from roster import SKATERS, TEAM, opponent_name
+from roster import SKATERS, SUBS, TEAM, opponent_name
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 fmt = lambda s: f"{int(round(s)) // 60}:{int(round(s)) % 60:02d}"
@@ -31,9 +31,10 @@ def cell(v, text=None):
     return f"<td data-v='{float(v) if ok else ''}'>{text if text is not None else (v if ok else '–')}</td>"
 
 
+sub_tag = lambda p: "<span class='sub'>sub</span>" if p in SUBS else ""
 rows = "\n".join(
     f"<tr><td class='l num' data-v='{p}'>{p}</td><td class='l name' data-v='{html.escape(SKATERS.get(p, ''))}'>"
-    f"{html.escape(SKATERS.get(p, ''))}</td>{cell(int(r.gp))}{cell(int(r.shifts))}{cell(r.toi, fmt(r.toi))}"
+    f"{html.escape(SKATERS.get(p, ''))}{sub_tag(p)}</td>{cell(int(r.gp))}{cell(int(r.shifts))}{cell(r.toi, fmt(r.toi))}"
     f"{cell(r.toi_gp, fmt(r.toi_gp))}{cell(r.play if r.play > 0 else None, fmt(r.play) if r.play > 0 else '–')}"
     f"{cell(r.avg, fmt(r.avg))}{cell(r.longest, fmt(r.longest))}"
     f"{cell(r.shortest if r.shortest == r.shortest else None, fmt(r.shortest) if r.shortest == r.shortest else '–')}</tr>"
@@ -94,6 +95,7 @@ th {{ font:600 12px/1.2 var(--data); letter-spacing:.1em; text-transform:upperca
 th[aria-sort="descending"]::after {{ content:" ▼"; }} th[aria-sort="ascending"]::after {{ content:" ▲"; }}
 th:focus-visible {{ outline:2px solid var(--team); outline-offset:2px; }}
 td {{ font:500 16px/1.2 var(--data); }} .l {{ text-align:left; }} td.num {{ font:800 20px/1 var(--display); color:var(--team); width:3.2em; }} td.name {{ font:500 16px/1.2 var(--body); }}
+.sub {{ font:600 11px/1 var(--data); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-left:6px; }}
 p.note {{ color:var(--muted); margin:0; max-width:70ch; }}
 </style></head><body><div class="wrap">
 <header><div class="eyebrow">LADA Seattle · Rec hockey</div><h1><span>{html.escape(TEAM)}</span> shift sheets</h1>

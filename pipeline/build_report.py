@@ -3,7 +3,7 @@ import sys, os, json
 from itertools import combinations
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from roster import SKATERS, TEAM, opponent_name
+from roster import SKATERS, SUBS, TEAM, opponent_name
 
 
 
@@ -16,7 +16,8 @@ def player_rows(A, labels, cut=None):
         for lab in labels:
             h = g[g.period == lab]
             per.append([int(len(h)), float(h.dur.sum()), float(h.dur.mean())] if len(h) else None)
-        players.append(dict(num=int(num), name=SKATERS.get(int(num), ""), shifts=int(len(g)), toi=float(g.dur.sum()),
+        players.append(dict(num=int(num), name=SKATERS.get(int(num), ""), sub=int(num) in SUBS,
+                            shifts=int(len(g)), toi=float(g.dur.sum()),
                             avg=float(g.dur.mean()), median=float(g.dur.median()), longest=float(g.dur.max()),
                             shortest=float(full.dur.min()) if len(full) else None,
                             play=float(g.play.sum()) if "play" in g else None, per=per))

@@ -56,6 +56,7 @@ th.l, td.l { text-align: left; }
 td { font: 500 16px/1.2 var(--data); }
 td.num { font: 800 20px/1 var(--display); color: var(--team); width: 3.2em; }
 td.name { font: 500 16px/1.2 var(--body); }
+.sub { font: 600 11px/1 var(--data); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-left: 6px; }
 td.per { color: var(--muted); }
 td .bar-in { display: inline-block; height: 8px; background: var(--team); border-radius: 2px; vertical-align: middle; margin-left: 8px; }
 tr.sel td { background: var(--team-soft); }
@@ -274,7 +275,7 @@ function renderTable() {
     return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortDir;
   });
   rowsEl.innerHTML = rows.map(p => `<tr data-n="${p.num}" class="${selected === p.num ? "sel" : ""}">
-    <td class="l num">${p.num}</td><td class="l name">${p.name || "<span style='color:var(--muted)'>(name?)</span>"}</td>` +
+    <td class="l num">${p.num}</td><td class="l name">${p.name || "<span style='color:var(--muted)'>(name?)</span>"}${p.sub ? "<span class='sub'>sub</span>" : ""}</td>` +
     COLS[view].map(c => `<td class="${c.first ? "gs" : ""}">${c.f(p)}</td>`).join("") + "</tr>").join("");
   tbl.querySelectorAll("th[data-k]").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortKey ? (sortDir < 0 ? "descending" : "ascending") : "none"));
 }

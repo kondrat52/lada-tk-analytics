@@ -19,6 +19,7 @@ class Renton:
     left one and the home team (white) the right one."""
     crop_top = 560 / 1702         # detection band starts here (fraction of frame height); ceiling above
     board_band = (0.41, 0.76)     # rows where boards.py looks for the far boards' yellow kick plate (fractions)
+    board_lowest = False          # boards.py: per column, only the lowest yellow run (yellow signs above the boards)
     center_x = 1880
     nets = {"left": 540, "right": 3245}
     ocr_skip_depth = None         # OCR skips crops this deep in our bench (None: read everything)
@@ -112,7 +113,46 @@ class Snoqualmie(Renton):
         return self.at_bench(x, rel)
 
 
-RINKS = {"renton": Renton, "snoqualmie": Snoqualmie}
+class Kirkland(Renton):
+    """Camera low at center ice on the near side with a fisheye lens (3840x1536): the far boards bow up to y ~430
+    at center and dip to ~700 at the frame edges, where the end boards run down the sides. Both benches are behind
+    the far boards like Renton's, but not mirror images: the home one (we wore white) right of center, the away
+    one left; the doors are at the blue posts (x 1612 and 2265). The near-side corners at the bottom of the frame are
+    off the ice (timekeeper and penalty boxes)."""
+    crop_top = 320 / 1536
+    board_band = (0.25, 0.49)
+    board_lowest = True           # the HOCKEY sign at the right has yellow letters
+    center_x = 1930
+    nets = {"left": 605, "right": 3255}
+    min_break = 25
+    bench_side = "right"
+    BENCHES = {"left": (1340, 1720), "right": (2160, 2560)}   # x at the boards, with Renton's ~30 px margins
+    scoreboard = (358, 396, 136, 82)
+    # the ice inside the end and near boards (the far boards curve is the top)
+    ICE = Path([(0, 0), (3840, 0), (3840, 690), (3800, 717), (3707, 917), (3653, 1037), (3560, 1277),
+                (3440, 1450), (3400, 1536), (560, 1536), (400, 1317), (333, 1183), (260, 1090), (150, 870),
+                (40, 650), (0, 640)])
+
+    def __init__(self, board_poly, bench=None):
+        self.P = board_poly
+        self.bench_x = self.BENCHES[bench or self.bench_side]
+
+    def onice(self, x, rel):
+        x = np.asarray(x, float); rel = np.asarray(rel, float)
+        y = rel + np.polyval(self.P, x)
+        inside = self.ICE.contains_points(np.c_[x.ravel(), y.ravel()]).reshape(x.shape)
+        return (rel > 5) & inside
+
+    def at_bench(self, x, rel):
+        x0, x1 = self.bench_x
+        return (x > x0) & (x < x1) & (rel < 15)
+
+    def bench_zone(self, x, rel):
+        x0, x1 = self.bench_x
+        return (x > x0 - 40) & (x < x1 + 40) & (rel > -80)
+
+
+RINKS = {"renton": Renton, "snoqualmie": Snoqualmie, "kirkland": Kirkland}
 
 # Our jersey that game, as tests on process.py's torso colour fractions (the dets.csv columns, or a dict of them):
 # `ours` picks our players for tracking, the looser `crop` which detections get a 4K crop for OCR and review.

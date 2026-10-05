@@ -11,7 +11,7 @@ goes away; adding fields doesn't need a bump.
 """
 import os, json
 import numpy as np, pandas as pd
-from roster import SKATERS, GOALIE_NAMES, LADA_IDS, TEAM_NAME, TEAM_SHORT, LADA_TEAM_ID, SITE_URL, OPPONENTS
+from roster import SKATERS, MEMBERS, SUBS, GOALIE_NAMES, LADA_IDS, TEAM_NAME, TEAM_SHORT, LADA_TEAM_ID, SITE_URL, OPPONENTS
 
 SCHEMA = 1
 
@@ -22,7 +22,8 @@ def _team():
 
 def _player(num):
     num = int(num)
-    return {"number": num, "name": SKATERS.get(num, GOALIE_NAMES.get(num, "")), "lada_player_id": LADA_IDS.get(num)}
+    p = {"number": num, "name": SKATERS.get(num, GOALIE_NAMES.get(num, "")), "lada_player_id": LADA_IDS.get(num)}
+    return {**p, "sub": True} if num in SUBS else p
 
 
 def _num(x, nd=1):
@@ -146,7 +147,8 @@ def write_feed(root, games, docs_by_game, season):
     }
     json.dump(season_doc, open(f"{api}/season.json", "w"), ensure_ascii=False, indent=1)
     roster_doc = {"schema": SCHEMA, "team": _team(),
-                  "skaters": [_player(n) for n in sorted(SKATERS)],
+                  "skaters": [_player(n) for n in sorted(MEMBERS)],
+                  "subs": [_player(n) for n in sorted(SUBS)],
                   "goalies": [_player(n) for n in sorted(GOALIE_NAMES)]}
     json.dump(roster_doc, open(f"{api}/roster.json", "w"), ensure_ascii=False, indent=1)
     return len(docs_by_game)

@@ -1,9 +1,12 @@
 import pandas as pd, glob, difflib
+from collections import Counter
 
 from roster import SKATERS
 
-# surname (as printed on jerseys) -> number, for fuzzy-matching OCR text
-NAMES = {name.upper(): num for num, name in SKATERS.items() if name}
+# surname (as printed on jerseys) -> number, for fuzzy-matching OCR text; a surname two players share (father and
+# son) says nothing about which one it is, so only their numbers tell them apart
+_SHARED = Counter(name.upper() for name in SKATERS.values() if name)
+NAMES = {name.upper(): num for num, name in SKATERS.items() if name and _SHARED[name.upper()] == 1}
 
 
 _NORM = str.maketrans({"D": "O", "Y": "V", "Q": "O", "0": "O"})
