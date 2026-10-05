@@ -1,0 +1,244 @@
+{
+  "id": "2026-10-04-vs-cv",
+  "date": "2026-10-04",
+  "title": "LADA Turbo Kings vs Chill Vibes HC, Oct 4",
+  "eyebrow": "Sun Oct 4, 2026 · 3:00 PM · Kirkland",
+  "opponent": "CV",
+  "video": "https://youtu.be/h0-xAZZ0f-Q",
+  "periods": [
+    {
+      "label": "P1",
+      "start": 4,
+      "end": 1131
+    },
+    {
+      "label": "P2",
+      "start": 1227,
+      "end": 2357
+    },
+    {
+      "label": "P3",
+      "start": 2469,
+      "end": 3977
+    }
+  ],
+  "nets": {
+    "P1": 3255,
+    "P2": 605,
+    "P3": 3255
+  },
+  "penalty_kills": [
+    {
+      "period": "P1",
+      "start": 1071,
+      "end": 1131,
+      "player": 33
+    },
+    {
+      "period": "P2",
+      "start": 1227,
+      "end": 1379,
+      "player": 33
+    },
+    {
+      "period": "P2",
+      "start": 2301,
+      "end": 2357,
+      "player": 78
+    },
+    {
+      "period": "P3",
+      "start": 2469,
+      "end": 2572,
+      "player": 78
+    }
+  ],
+  "notes": [
+    "Played at Kirkland, a new rink for the pipeline: the camera sits low at center ice on the near side with a fisheye lens, and both benches are behind the far boards. Home game: we wore white and had the bench right of center.",
+    "Penalty kills, found from the video: Nizamutdinov #33, 3 minutes from 17:51 of the video (end of P1) to 22:59 (P2), and Shakhov #78, 3 minutes from 38:21 (end of P2) to 42:52 (P3). Both carried over an intermission and were solved with 4 skaters on the ice. The scoreboard showed penalties on the wrong team's panel this game, so who sat comes from the players skating into the penalty boxes.",
+    "Goal times come from the scoreboard and the video: we scored at 5:32 of the video, Chill Vibes tied it at 26:28, and we won it at 62:40. The video runs to the final horn.",
+    "Subs this game: Kleiman #69 and Unuchek #49."
+  ],
+  "video_ends_early": false,
+  "fun": {
+    "name_reads": {
+      "69": 312,
+      "14": 271,
+      "90": 224,
+      "78": 133,
+      "18": 125,
+      "49": 121,
+      "61": 92,
+      "12": 63,
+      "33": 18,
+      "82": 12
+    }
+  },
+  "pipeline": {
+    "detections": 701464,
+    "crops": 108659,
+    "reads": 4313,
+    "reviewed": 981
+  },
+  "highlights": [
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 332,
+      "clip": "clips/goal-1.mp4",
+      "poster": "clips/goal-1.jpg",
+      "note": "Scramble at their net opens the scoring"
+    },
+    {
+      "type": "penalty",
+      "player": 33,
+      "t": 1050,
+      "clip": "clips/penalty-33.mp4",
+      "poster": "clips/penalty-33.jpg",
+      "note": "A Chill Vibes player goes down by the far boards; 3-minute minor carried over the intermission"
+    },
+    {
+      "type": "goal",
+      "team": "against",
+      "t": 1588,
+      "clip": "clips/goal-2.mp4",
+      "poster": "clips/goal-2.jpg",
+      "note": "Rush and scramble at our net ties it 1-1"
+    },
+    {
+      "type": "penalty",
+      "player": 78,
+      "t": 2276,
+      "clip": "clips/penalty-78.mp4",
+      "poster": "clips/penalty-78.jpg",
+      "note": "A Chill Vibes player goes down at the far boards; 3-minute minor carried over the intermission"
+    },
+    {
+      "type": "goal",
+      "team": "for",
+      "t": 3760,
+      "clip": "clips/goal-3.mp4",
+      "poster": "clips/goal-3.jpg",
+      "note": "Scramble at their net, the winner with about 2 minutes left"
+    }
+  ],
+  "lada_game_id": 32970,
+  "stoppages": [
+    [
+      54,
+      79
+    ],
+    [
+      123,
+      148
+    ],
+    [
+      256,
+      272
+    ],
+    [
+      343,
+      365
+    ],
+    [
+      375,
+      390
+    ],
+    [
+      423,
+      462
+    ],
+    [
+      644,
+      666
+    ],
+    [
+      735,
+      751
+    ],
+    [
+      762,
+      781
+    ],
+    [
+      914,
+      944
+    ],
+    [
+      1227,
+      1229
+    ],
+    [
+      1253,
+      1275
+    ],
+    [
+      1587,
+      1626
+    ],
+    [
+      1751,
+      1770
+    ],
+    [
+      1866,
+      1891
+    ],
+    [
+      2276,
+      2313
+    ],
+    [
+      2469,
+      2471
+    ],
+    [
+      2655,
+      2711
+    ],
+    [
+      2826,
+      2873
+    ],
+    [
+      3008,
+      3026
+    ],
+    [
+      3035,
+      3055
+    ],
+    [
+      3072,
+      3097
+    ],
+    [
+      3115,
+      3151
+    ],
+    [
+      3246,
+      3318
+    ],
+    [
+      3419,
+      3455
+    ],
+    [
+      3608,
+      3689
+    ],
+    [
+      3753,
+      3791
+    ],
+    [
+      3838,
+      3871
+    ],
+    [
+      3888,
+      3916
+    ]
+  ]
+}

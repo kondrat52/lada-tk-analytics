@@ -5,8 +5,9 @@
   "short_name": "LTK",
   "lada_team_id": 24
  },
- "updated": "2026-09-27",
+ "updated": "2026-10-04",
  "games": [
+  "2026-10-04-vs-cv",
   "2026-09-27-vs-rr",
   "2026-09-20-vs-so",
   "2026-09-13-vs-ttt"
@@ -64,6 +65,34 @@
    ]
   },
   {
+   "number": 69,
+   "name": "Kleiman",
+   "lada_player_id": 20394,
+   "sub": true,
+   "games_played": 1,
+   "shifts": 18,
+   "toi": 1971,
+   "toi_per_game": 1971,
+   "play": 1477,
+   "avg_shift": 109.5,
+   "longest_shift": 224,
+   "shortest_shift": 39,
+   "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1971,
+     "shifts": 18,
+     "avg_shift": 109.5,
+     "play": 1477
+    }
+   ]
+  },
+  {
    "number": 74,
    "name": "Bronnikov",
    "lada_player_id": null,
@@ -115,41 +144,30 @@
    ]
   },
   {
-   "number": 78,
-   "name": "Shakhov",
-   "lada_player_id": 12161,
-   "games_played": 2,
-   "shifts": 27,
-   "toi": 3191,
-   "toi_per_game": 1595.5,
-   "play": 2253,
-   "avg_shift": 118.2,
-   "longest_shift": 189,
-   "shortest_shift": 39,
+   "number": 49,
+   "name": "Unuchek",
+   "lada_player_id": null,
+   "sub": true,
+   "games_played": 1,
+   "shifts": 16,
+   "toi": 1778,
+   "toi_per_game": 1778,
+   "play": 1408,
+   "avg_shift": 111.1,
+   "longest_shift": 177,
+   "shortest_shift": 26,
    "games": [
     {
-     "id": "2026-09-27-vs-rr",
-     "date": "2026-09-27",
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
      "opponent": {
-      "code": "RR",
-      "name": "Roadrunners"
+      "code": "CV",
+      "name": "Chill Vibes HC"
      },
-     "toi": 1595,
-     "shifts": 13,
-     "avg_shift": 122.7,
-     "play": 1093
-    },
-    {
-     "id": "2026-09-13-vs-ttt",
-     "date": "2026-09-13",
-     "opponent": {
-      "code": "TTT",
-      "name": "Tic-Tac-Toes"
-     },
-     "toi": 1596,
-     "shifts": 14,
-     "avg_shift": 114,
-     "play": 1160
+     "toi": 1778,
+     "shifts": 16,
+     "avg_shift": 111.1,
+     "play": 1408
     }
    ]
   },
@@ -157,15 +175,27 @@
    "number": 61,
    "name": "Prozhogin",
    "lada_player_id": 11138,
-   "games_played": 2,
-   "shifts": 25,
-   "toi": 3156,
-   "toi_per_game": 1578,
-   "play": 2369,
-   "avg_shift": 126.2,
+   "games_played": 3,
+   "shifts": 42,
+   "toi": 5199,
+   "toi_per_game": 1733,
+   "play": 4002,
+   "avg_shift": 123.8,
    "longest_shift": 254,
-   "shortest_shift": 70,
+   "shortest_shift": 23,
    "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 2043,
+     "shifts": 17,
+     "avg_shift": 120.2,
+     "play": 1633
+    },
     {
      "id": "2026-09-27-vs-rr",
      "date": "2026-09-27",
@@ -193,18 +223,30 @@
    ]
   },
   {
-   "number": 12,
-   "name": "Kondratenko",
-   "lada_player_id": 14209,
+   "number": 78,
+   "name": "Shakhov",
+   "lada_player_id": 12161,
    "games_played": 3,
-   "shifts": 39,
-   "toi": 4600,
-   "toi_per_game": 1533.3,
-   "play": 3437,
-   "avg_shift": 117.9,
-   "longest_shift": 200,
-   "shortest_shift": 43,
+   "shifts": 44,
+   "toi": 5155,
+   "toi_per_game": 1718.3,
+   "play": 3700,
+   "avg_shift": 117.2,
+   "longest_shift": 189,
+   "shortest_shift": 39,
    "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1964,
+     "shifts": 17,
+     "avg_shift": 115.5,
+     "play": 1447
+    },
     {
      "id": "2026-09-27-vs-rr",
      "date": "2026-09-27",
@@ -212,22 +254,10 @@
       "code": "RR",
       "name": "Roadrunners"
      },
-     "toi": 1553,
-     "shifts": 12,
-     "avg_shift": 129.4,
-     "play": 1161
-    },
-    {
-     "id": "2026-09-20-vs-so",
-     "date": "2026-09-20",
-     "opponent": {
-      "code": "SO",
-      "name": "Sea Otters"
-     },
-     "toi": 1619,
+     "toi": 1595,
      "shifts": 13,
-     "avg_shift": 124.5,
-     "play": 1229
+     "avg_shift": 122.7,
+     "play": 1093
     },
     {
      "id": "2026-09-13-vs-ttt",
@@ -236,10 +266,10 @@
       "code": "TTT",
       "name": "Tic-Tac-Toes"
      },
-     "toi": 1428,
+     "toi": 1596,
      "shifts": 14,
-     "avg_shift": 102,
-     "play": 1047
+     "avg_shift": 114,
+     "play": 1160
     }
    ]
   },
@@ -247,15 +277,27 @@
    "number": 90,
    "name": "Ivanov",
    "lada_player_id": 11144,
-   "games_played": 3,
-   "shifts": 37,
-   "toi": 4538,
-   "toi_per_game": 1512.7,
-   "play": 3179,
-   "avg_shift": 122.6,
+   "games_played": 4,
+   "shifts": 52,
+   "toi": 6508,
+   "toi_per_game": 1627,
+   "play": 4643,
+   "avg_shift": 125.2,
    "longest_shift": 250,
    "shortest_shift": 55,
    "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1970,
+     "shifts": 15,
+     "avg_shift": 131.3,
+     "play": 1464
+    },
     {
      "id": "2026-09-27-vs-rr",
      "date": "2026-09-27",
@@ -298,15 +340,27 @@
    "number": 14,
    "name": "Radutskiy",
    "lada_player_id": 11145,
-   "games_played": 2,
-   "shifts": 24,
-   "toi": 2815,
-   "toi_per_game": 1407.5,
-   "play": 2120,
-   "avg_shift": 117.3,
-   "longest_shift": 186,
+   "games_played": 3,
+   "shifts": 39,
+   "toi": 4778,
+   "toi_per_game": 1592.7,
+   "play": 3617,
+   "avg_shift": 122.5,
+   "longest_shift": 195,
    "shortest_shift": 34,
    "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1963,
+     "shifts": 15,
+     "avg_shift": 130.9,
+     "play": 1497
+    },
     {
      "id": "2026-09-20-vs-so",
      "date": "2026-09-20",
@@ -330,6 +384,234 @@
      "shifts": 10,
      "avg_shift": 109.8,
      "play": 840
+    }
+   ]
+  },
+  {
+   "number": 12,
+   "name": "Kondratenko",
+   "lada_player_id": 14209,
+   "games_played": 4,
+   "shifts": 56,
+   "toi": 6263,
+   "toi_per_game": 1565.8,
+   "play": 4629,
+   "avg_shift": 111.8,
+   "longest_shift": 200,
+   "shortest_shift": 43,
+   "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1663,
+     "shifts": 17,
+     "avg_shift": 97.8,
+     "play": 1192
+    },
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1553,
+     "shifts": 12,
+     "avg_shift": 129.4,
+     "play": 1161
+    },
+    {
+     "id": "2026-09-20-vs-so",
+     "date": "2026-09-20",
+     "opponent": {
+      "code": "SO",
+      "name": "Sea Otters"
+     },
+     "toi": 1619,
+     "shifts": 13,
+     "avg_shift": 124.5,
+     "play": 1229
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1428,
+     "shifts": 14,
+     "avg_shift": 102,
+     "play": 1047
+    }
+   ]
+  },
+  {
+   "number": 33,
+   "name": "Nizamutdinov",
+   "lada_player_id": null,
+   "games_played": 2,
+   "shifts": 28,
+   "toi": 3097,
+   "toi_per_game": 1548.5,
+   "play": 2400,
+   "avg_shift": 110.6,
+   "longest_shift": 199,
+   "shortest_shift": 54,
+   "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1799,
+     "shifts": 16,
+     "avg_shift": 112.4,
+     "play": 1407
+    },
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1298,
+     "shifts": 12,
+     "avg_shift": 108.2,
+     "play": 993
+    }
+   ]
+  },
+  {
+   "number": 82,
+   "name": "Podkorytov",
+   "lada_player_id": 19315,
+   "games_played": 4,
+   "shifts": 48,
+   "toi": 5679,
+   "toi_per_game": 1419.8,
+   "play": 4188,
+   "avg_shift": 118.3,
+   "longest_shift": 210,
+   "shortest_shift": 26,
+   "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1768,
+     "shifts": 15,
+     "avg_shift": 117.9,
+     "play": 1287
+    },
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1350,
+     "shifts": 12,
+     "avg_shift": 112.5,
+     "play": 1026
+    },
+    {
+     "id": "2026-09-20-vs-so",
+     "date": "2026-09-20",
+     "opponent": {
+      "code": "SO",
+      "name": "Sea Otters"
+     },
+     "toi": 1464,
+     "shifts": 12,
+     "avg_shift": 122,
+     "play": 1070
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1097,
+     "shifts": 9,
+     "avg_shift": 121.9,
+     "play": 805
+    }
+   ]
+  },
+  {
+   "number": 18,
+   "name": "Petrov",
+   "lada_player_id": 12165,
+   "games_played": 4,
+   "shifts": 45,
+   "toi": 5333,
+   "toi_per_game": 1333.2,
+   "play": 4292,
+   "avg_shift": 118.5,
+   "longest_shift": 206,
+   "shortest_shift": 53,
+   "games": [
+    {
+     "id": "2026-10-04-vs-cv",
+     "date": "2026-10-04",
+     "opponent": {
+      "code": "CV",
+      "name": "Chill Vibes HC"
+     },
+     "toi": 1707,
+     "shifts": 14,
+     "avg_shift": 121.9,
+     "play": 1403
+    },
+    {
+     "id": "2026-09-27-vs-rr",
+     "date": "2026-09-27",
+     "opponent": {
+      "code": "RR",
+      "name": "Roadrunners"
+     },
+     "toi": 1184,
+     "shifts": 10,
+     "avg_shift": 118.4,
+     "play": 926
+    },
+    {
+     "id": "2026-09-20-vs-so",
+     "date": "2026-09-20",
+     "opponent": {
+      "code": "SO",
+      "name": "Sea Otters"
+     },
+     "toi": 1235,
+     "shifts": 10,
+     "avg_shift": 123.5,
+     "play": 986
+    },
+    {
+     "id": "2026-09-13-vs-ttt",
+     "date": "2026-09-13",
+     "opponent": {
+      "code": "TTT",
+      "name": "Tic-Tac-Toes"
+     },
+     "toi": 1207,
+     "shifts": 11,
+     "avg_shift": 109.7,
+     "play": 977
     }
    ]
   },
@@ -436,84 +718,6 @@
    ]
   },
   {
-   "number": 82,
-   "name": "Podkorytov",
-   "lada_player_id": 19315,
-   "games_played": 3,
-   "shifts": 33,
-   "toi": 3911,
-   "toi_per_game": 1303.7,
-   "play": 2901,
-   "avg_shift": 118.5,
-   "longest_shift": 199,
-   "shortest_shift": 26,
-   "games": [
-    {
-     "id": "2026-09-27-vs-rr",
-     "date": "2026-09-27",
-     "opponent": {
-      "code": "RR",
-      "name": "Roadrunners"
-     },
-     "toi": 1350,
-     "shifts": 12,
-     "avg_shift": 112.5,
-     "play": 1026
-    },
-    {
-     "id": "2026-09-20-vs-so",
-     "date": "2026-09-20",
-     "opponent": {
-      "code": "SO",
-      "name": "Sea Otters"
-     },
-     "toi": 1464,
-     "shifts": 12,
-     "avg_shift": 122,
-     "play": 1070
-    },
-    {
-     "id": "2026-09-13-vs-ttt",
-     "date": "2026-09-13",
-     "opponent": {
-      "code": "TTT",
-      "name": "Tic-Tac-Toes"
-     },
-     "toi": 1097,
-     "shifts": 9,
-     "avg_shift": 121.9,
-     "play": 805
-    }
-   ]
-  },
-  {
-   "number": 33,
-   "name": "Nizamutdinov",
-   "lada_player_id": null,
-   "games_played": 1,
-   "shifts": 12,
-   "toi": 1298,
-   "toi_per_game": 1298,
-   "play": 993,
-   "avg_shift": 108.2,
-   "longest_shift": 199,
-   "shortest_shift": 73,
-   "games": [
-    {
-     "id": "2026-09-27-vs-rr",
-     "date": "2026-09-27",
-     "opponent": {
-      "code": "RR",
-      "name": "Roadrunners"
-     },
-     "toi": 1298,
-     "shifts": 12,
-     "avg_shift": 108.2,
-     "play": 993
-    }
-   ]
-  },
-  {
    "number": 26,
    "name": "Babkin",
    "lada_player_id": 19314,
@@ -549,57 +753,6 @@
      "shifts": 11,
      "avg_shift": 112.6,
      "play": 911
-    }
-   ]
-  },
-  {
-   "number": 18,
-   "name": "Petrov",
-   "lada_player_id": 12165,
-   "games_played": 3,
-   "shifts": 31,
-   "toi": 3626,
-   "toi_per_game": 1208.7,
-   "play": 2889,
-   "avg_shift": 117.0,
-   "longest_shift": 206,
-   "shortest_shift": 56,
-   "games": [
-    {
-     "id": "2026-09-27-vs-rr",
-     "date": "2026-09-27",
-     "opponent": {
-      "code": "RR",
-      "name": "Roadrunners"
-     },
-     "toi": 1184,
-     "shifts": 10,
-     "avg_shift": 118.4,
-     "play": 926
-    },
-    {
-     "id": "2026-09-20-vs-so",
-     "date": "2026-09-20",
-     "opponent": {
-      "code": "SO",
-      "name": "Sea Otters"
-     },
-     "toi": 1235,
-     "shifts": 10,
-     "avg_shift": 123.5,
-     "play": 986
-    },
-    {
-     "id": "2026-09-13-vs-ttt",
-     "date": "2026-09-13",
-     "opponent": {
-      "code": "TTT",
-      "name": "Tic-Tac-Toes"
-     },
-     "toi": 1207,
-     "shifts": 11,
-     "avg_shift": 109.7,
-     "play": 977
     }
    ]
   },
