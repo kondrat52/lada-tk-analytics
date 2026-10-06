@@ -11,6 +11,7 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
 | `games/<id>.json` | One game: periods, per-player stats, every shift, highlights (clip URLs), stoppages |
 | `season.json` | Season totals per player |
 | `roster.json` | Jersey numbers, surnames and LADA player ids |
+| `trends.json` | Per game, newest first: the team's measures and each skater's, as on the trends page |
 
 ## Conventions
 
@@ -40,6 +41,7 @@ Base URL: `https://kondrat52.github.io/lada-tk-analytics/api/`
   "updated": "2026-09-27",
   "season_url": ".../api/season.json",
   "roster_url": ".../api/roster.json",
+  "trends_url": ".../api/trends.json",
   "games": [{
     "id": "2026-09-27-vs-rr", "date": "2026-09-27", "title": "...", "subtitle": "Sun Sep 27, 2026 · 7:50 PM · Renton",
     "opponent": {"code": "RR", "name": null}, "lada_game_id": 32969,
@@ -78,3 +80,20 @@ play, avg_shift, longest_shift, shortest_shift, games[]}`. `games[]` lists that 
 
 `skaters[]` and `goalies[]`, each `{number, name, lada_player_id}`, and `subs[]`: skaters who have subbed for the
 team without being on it. Edit the repo's `roster.json` to change them.
+
+## `trends.json`
+
+The numbers behind the trends page, one entry per game in `games[]`, newest first. Averages and "latest game vs
+earlier" comparisons are left to the reader.
+
+| Field | Meaning |
+|---|---|
+| `id`, `date`, `rink`, `opponent`, `lada_game_id`, `video_ends_early` | As in `index.json` and the game file |
+| `goals_on_video`, `result` | Goals found in the recording, and `"W"`, `"L"` or `"T"` from them |
+| `shots` | As in the game file: `{for, against, periods[]}`, or `null` when the board wasn't read |
+| `zones` | `{offence, defence}`: share of live play (0–1) spent near their net and near ours; the rest is the middle of the ice. `null` when not measured |
+| `skaters` | Skaters who dressed for us |
+| `avg_shift` | The team's average shift (seconds) |
+| `play_share` | Share of the periods' time that was live play (0–1), estimated like `play` |
+| `penalties` | `{count, short_handed, goals_against}`: our penalties (one carried over an intermission counts once), seconds spent killing them, and goals against during the kills |
+| `players[]` | Sorted by ice time: the player fields, `shifts, toi, avg_shift`, `toi_share` (share of the team's skater ice time; an equal split is `1 / skaters`), `avg_shift_p1` and `avg_shift_p3` (average shift in the first and third periods, `null` without a shift there) and `plus_minus` (goals for minus goals against while on the ice, from the goals on video) |

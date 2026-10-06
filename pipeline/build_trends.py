@@ -1,10 +1,12 @@
-"""build_trends.py : docs/trends.html, the team's trends across games, from games/*/game.json + shifts.csv.
-build_site.py runs it. Time in offence and defence come from game.json's `zones` (zones.py, filled in on publish),
-shots on goal from its `shots` (shots.py, read off the arena scoreboard)."""
+"""build_trends.py : docs/trends.html, the team's trends across games, from games/*/game.json + shifts.csv, and
+docs/api/trends.json, the same measures for apps (build_feed.trends_doc). build_site.py runs it. Time in offence and
+defence come from game.json's `zones` (zones.py, filled in on publish), shots on goal from its `shots` (shots.py,
+read off the arena scoreboard)."""
 import os, sys, json, glob
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from roster import SKATERS, SUBS, TEAM, opponent_name
+from build_feed import trends_doc
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
@@ -61,19 +63,20 @@ def game_rows(gd):
             toi_share=float(s.dur.sum() / team_toi), equal_share=1 / A.player.nunique(),
             p1=float(by["P1"]) if "P1" in by else None, p3=float(by["P3"]) if "P3" in by else None,
             plus_minus=sum((1 if h["team"] == "for" else -1) for h in goals if on[min(int(h["t"]), T - 1)])))
-    return team, players
+    return game, team, players
 
 
 def build(root=ROOT):
-    team, players = [], []
-    for gd in sorted(glob.glob(f"{root}/games/*/")):
-        t, p = game_rows(gd)
-        team.append(t); players += p
+    rows = [game_rows(gd) for gd in sorted(glob.glob(f"{root}/games/*/"))]
+    team = [t for _, t, _ in rows]
+    players = [p for _, _, ps in rows for p in ps]
     html = open(f"{HERE}/trends_template.html").read()
     html = html.replace("__TEAM__", TEAM).replace("__DATA__", json.dumps(dict(team=team, players=players), separators=(",", ":")))
     open(f"{root}/docs/trends.html", "w").write(html)
+    os.makedirs(f"{root}/docs/api", exist_ok=True)
+    json.dump(trends_doc(rows), open(f"{root}/docs/api/trends.json", "w"), ensure_ascii=False, separators=(",", ":"))
     return len(team)
 
 
 if __name__ == "__main__":
-    print(f"trends over {build()} game(s) -> docs/trends.html")
+    print(f"trends over {build()} game(s) -> docs/trends.html, docs/api/trends.json")

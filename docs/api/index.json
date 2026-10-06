@@ -9,6 +9,7 @@
  "updated": "2026-10-04",
  "season_url": "https://kondrat52.github.io/lada-tk-analytics/api/season.json",
  "roster_url": "https://kondrat52.github.io/lada-tk-analytics/api/roster.json",
+ "trends_url": "https://kondrat52.github.io/lada-tk-analytics/api/trends.json",
  "games": [
   {
    "id": "2026-10-04-vs-cv",

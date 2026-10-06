@@ -4,6 +4,7 @@
   api/games/<id>.json     one game: periods, per-player stats, every shift, highlights, stoppages
   api/season.json         season totals per player
   api/roster.json         numbers, surnames, LADA player ids
+  api/trends.json         per game: the team's measures and each skater's, behind the trends page (build_trends.py)
 
 Times are seconds. Shift and highlight times are seconds into the game video (as on YouTube); *_in_period fields
 are seconds from that period's start. See API.md for the field list. Bump SCHEMA when a field changes meaning or
@@ -114,6 +115,31 @@ def game_doc(game, A, players, highlights):
     }
 
 
+def trends_doc(rows):
+    """api/trends.json: the measures behind the trends page, one entry per game, newest first.
+    rows: (game, team, players) per game, as build_trends.game_rows returns them."""
+    games = []
+    for game, t, players in sorted(rows, key=lambda r: r[0]["date"], reverse=True):
+        games.append({
+            "id": game["id"], "date": game["date"], "rink": _when_where(game)[1],
+            "opponent": {"code": game["opponent"], "name": game.get("opponent_name") or OPPONENTS.get(game["opponent"])},
+            "lada_game_id": game.get("lada_game_id"),
+            "video_ends_early": t["video_ends_early"],
+            "goals_on_video": {"for": t["gf"], "against": t["ga"]}, "result": t["result"],
+            "shots": _shots(game),
+            "zones": {"offence": t["offence"], "defence": t["defence"]} if t["offence"] is not None else None,
+            "skaters": t["skaters"], "avg_shift": _num(t["avg_shift"]), "play_share": _num(t["live_pct"], 4),
+            "penalties": {"count": t["penalties"],
+                          "short_handed": _num(sum(k["end"] - k["start"] for k in game.get("penalty_kills", []))),
+                          "goals_against": t["pk_ga"]},
+            "players": [{**_player(p["num"]), "shifts": p["shifts"], "toi": _num(p["toi"]),
+                         "avg_shift": _num(p["avg_shift"]), "toi_share": _num(p["toi_share"], 4),
+                         "avg_shift_p1": _num(p["p1"]), "avg_shift_p3": _num(p["p3"]), "plus_minus": p["plus_minus"]}
+                        for p in sorted(players, key=lambda p: -p["toi"])],
+        })
+    return {"schema": SCHEMA, "team": _team(), "updated": games[0]["date"] if games else None, "games": games}
+
+
 def _per_game(docs_by_game, games):
     """number -> [{id, date, opponent, toi, shifts, avg_shift, play}], newest game first."""
     out = {}
@@ -137,6 +163,7 @@ def write_feed(root, games, docs_by_game, season):
     index = {
         "schema": SCHEMA, "team": _team(), "site_url": site + "/", "updated": updated,
         "season_url": f"{site}/api/season.json", "roster_url": f"{site}/api/roster.json",
+        "trends_url": f"{site}/api/trends.json",
         "games": [{"id": g["id"], "date": g["date"], "title": g.get("title"), "subtitle": g.get("eyebrow"),
                    "time": _when_where(g)[0], "rink": _when_where(g)[1],
                    "opponent": {"code": g["opponent"], "name": g.get("opponent_name") or OPPONENTS.get(g["opponent"])},
