@@ -297,7 +297,8 @@ the LADA app uses to link the game) from LADA's public "last game" call. If it l
 `https://api.ladaseattle.com/api/v1/game/<LADA id of any game vs this opponent>/opponentGames` (the team's upcoming
 games and their ids: `.../api/v1/team/24/game/next/30`). Add it, and the opponent's full name if you know it, as
 `"lada_game_id"` / `"opponent_name"` in `game.json`, then re-run `$PY pipeline/build_site.py`. A new opponent's
-code and full name go in `opponents.json` (the user's spelling wins over LADA's). For a new player, also add their
+code and full name go in `opponents.json` (the user's spelling wins over LADA's; LADA's exact spelling is what
+finds the team's logo in the LADA app, so a different one shows initials there). For a new player, also add their
 LADA player id to `lada_player_ids` in `roster.json` if the user knows it. Write `notes` in `game.json` (they
 survive a republish): the rink if it's new, who sat and when, where the goal times came from, the subs, and
 anything you labeled by hand or read differently from the scoreboard.
