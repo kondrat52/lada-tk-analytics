@@ -53,7 +53,7 @@ button.chip { border:0; padding:0; cursor:default; }
 
 /* charts */
 .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:12px; }
-.chart h3 { margin-bottom:2px; } .chart .cap { font:500 14px/1.3 var(--data); color:var(--muted); margin:0 0 6px; }
+.chart h3 { margin-bottom:2px; }
 svg.plot { width:100%; height:auto; display:block; overflow:visible; }
 svg text { font-family:var(--data); font-size:13px; fill:var(--muted); }
 svg .axis { stroke:var(--rule); stroke-width:1; } svg .gridl { stroke:var(--grid); stroke-width:1; }
@@ -100,7 +100,6 @@ td .dim { color:var(--faint); }
   <section aria-labelledby="form-h">
     <h2 id="form-h">Team form</h2>
     <div class="tiles" id="tiles"></div>
-    <p class="note">Arrows compare the latest game with the average of the earlier ones, and appear once a measure has 3 or more games.</p>
   </section>
 
   <section aria-labelledby="games-h">
@@ -112,7 +111,6 @@ td .dim { color:var(--faint); }
     <h2 id="pl-h">Players</h2>
     <div class="callouts" id="callouts"></div>
     <div class="tablebox"><table id="ptable"><thead><tr id="phead"></tr></thead><tbody id="pbody"></tbody></table></div>
-    <p class="note">Click a column to sort. Sparklines show average shift length per game, oldest to newest, with the latest game marked. "Last vs earlier" compares each player's latest game with the ones before it. Ice share: 1.00× is an equal split of the team's ice time. P3 vs P1: third-period shifts minus first-period ones.</p>
   </section>
 
 </div>
@@ -181,7 +179,7 @@ function spark(vals, { w = 96, hgt = 26, lo, hi } = {}) {
 
 /* ---------- intro ---------- */
 const span = `${fdateY(games[0].date)} – ${fdateY(games[games.length - 1].date)}`;
-$("#intro").textContent = `${games.length} tracked games, ${span}. Everything here comes from the game videos.`;
+$("#intro").textContent = `${games.length} tracked games, ${span}`;
 
 /* ---------- form tiles ---------- */
 function deltaInfo(vals, goodDir, fmt) {
@@ -215,10 +213,10 @@ const sum = (a, k) => a.reduce((s, g) => s + g[k], 0);
 const shotGF = sum(shotG, "gf"), shotGA = sum(shotG, "ga");
 const tiles = [
   tile({ label: "Record", value: `${W}–${L}${T ? "–" + T : ""}`, chips, sub: `${gf} goals for, ${ga} against` }),
-  tile({ label: "Time in offence", value: pct(mean(off.filter(x => x != null))), vals: off, goodDir: 1, fmt: d => signed(d * 100) + " pts", sub: `Share of live play near their net · ${nZone} games` }),
-  tile({ label: "Time in defence", value: pct(mean(dfc.filter(x => x != null))), vals: dfc, goodDir: -1, fmt: d => signed(d * 100) + " pts", sub: `Share of live play near our net · ${nZone} games` }),
+  tile({ label: "Time in offence", value: pct(mean(off.filter(x => x != null))), vals: off, goodDir: 1, fmt: d => signed(d * 100) + " pts", sub: `${nZone} games` }),
+  tile({ label: "Time in defence", value: pct(mean(dfc.filter(x => x != null))), vals: dfc, goodDir: -1, fmt: d => signed(d * 100) + " pts", sub: `${nZone} games` }),
   ...(nShots ? [
-  tile({ label: "Shots per game", value: `${mean(shotG.map(g => g.sf)).toFixed(0)}–${mean(shotG.map(g => g.sa)).toFixed(0)}`, vals: games.map(g => g.sf == null ? null : g.sf - g.sa), goodDir: 1, fmt: d => signed(d, 0) + " shots", sub: `Ours–theirs · sparkline: shot difference · ${nShots} games` }),
+  tile({ label: "Shots per game", value: `${mean(shotG.map(g => g.sf)).toFixed(0)}–${mean(shotG.map(g => g.sa)).toFixed(0)}`, vals: games.map(g => g.sf == null ? null : g.sf - g.sa), goodDir: 1, fmt: d => signed(d, 0) + " shots", sub: `${nShots} games` }),
   tile({ label: "Shooting %", value: (shotGF / sum(shotG, "sf") * 100).toFixed(1) + "%", vals: games.map(g => g.sf ? g.gf / g.sf : null), goodDir: 1, fmt: d => signed(d * 100, 1) + " pts", sub: `${shotGF} goals on ${sum(shotG, "sf")} shots` }),
   tile({ label: "Save %", value: (1 - shotGA / sum(shotG, "sa")).toFixed(3).replace(/^0/, ""), vals: games.map(g => g.sa ? 1 - g.ga / g.sa : null), goodDir: 1, fmt: d => signed(d * 1000, 0) + " pts", sub: `${shotGA} goals on ${sum(shotG, "sa")} shots` }),
   ] : []),
@@ -243,10 +241,9 @@ function xAxis(svg, X) {
     const t2 = el("text", { x: X(i), y: CH - M.b + 33, "text-anchor": "middle" }, svg); t2.textContent = g.short;
   });
 }
-function chartCard(title, cap, legend) {
+function chartCard(title, legend) {
   const c = h("div", "card chart");
   c.appendChild(h("h3", null, title));
-  if (cap) c.appendChild(h("p", "cap", cap));
   const svg = el("svg", { viewBox: `0 0 ${CW} ${CH}`, class: "plot", role: "img", "aria-label": title });
   c.appendChild(svg);
   if (legend) {
@@ -262,7 +259,7 @@ const Xc = i => M.l + band * (i + .5);
 
 // goals: for up, against down
 (() => {
-  const svg = chartCard("Goals", "Goals for above the line, against below.", [["For", "var(--s-for)"], ["Against", "var(--s-against)"]]);
+  const svg = chartCard("Goals", [["For", "var(--s-for)"], ["Against", "var(--s-against)"]]);
   const mx = Math.max(3, ...games.map(g => Math.max(g.gf, g.ga)));
   const mid = M.t + (CH - M.t - M.b) / 2, k = (CH - M.t - M.b) / 2 / mx;
   const Y = v => mid - v * k;
@@ -283,8 +280,8 @@ const Xc = i => M.l + band * (i + .5);
 function roundTop(x, base, w, hgt) { const r = Math.min(4, hgt, w / 2); return `M${x},${base}V${base - hgt + r}Q${x},${base - hgt} ${x + r},${base - hgt}H${x + w - r}Q${x + w},${base - hgt} ${x + w},${base - hgt + r}V${base}Z`; }
 function roundBottom(x, base, w, hgt) { const r = Math.min(4, hgt, w / 2); return `M${x},${base}V${base + hgt - r}Q${x},${base + hgt} ${x + r},${base + hgt}H${x + w - r}Q${x + w},${base + hgt} ${x + w},${base + hgt - r}V${base}Z`; }
 
-function lineChart({ title, cap, series, lo, hi, ticks, fmtTick, fmtVal, ref, refLabel, legend, extra }) {
-  const svg = chartCard(title, cap, legend);
+function lineChart({ title, series, lo, hi, ticks, fmtTick, fmtVal, ref, refLabel, legend, extra }) {
+  const svg = chartCard(title, legend);
   const Y = v => CH - M.b - (v - lo) / (hi - lo) * (CH - M.t - M.b);
   frame(svg, ticks, Y, fmtTick);
   if (ref != null) {
@@ -305,7 +302,7 @@ function lineChart({ title, cap, series, lo, hi, ticks, fmtTick, fmtVal, ref, re
 }
 
 if (nShots) (() => {
-  const svg = chartCard("Shots on goal", "Our shots above the line, theirs below, from the arena scoreboard.", [["Ours", "var(--s-for)"], ["Theirs", "var(--s-against)"]]);
+  const svg = chartCard("Shots on goal", [["Ours", "var(--s-for)"], ["Theirs", "var(--s-against)"]]);
   const mx = Math.max(10, ...shotG.map(g => Math.max(g.sf, g.sa))), step = mx > 30 ? 20 : 10;
   const top = Math.ceil(mx / step) * step, mid = M.t + (CH - M.t - M.b) / 2, k = (CH - M.t - M.b) / 2 / top;
   const Y = v => mid - v * k;
@@ -328,7 +325,7 @@ if (nShots) (() => {
 if (nShots) (() => {
   const np = Math.max(...shotG.map(g => g.sp.length));
   const per = Array.from({ length: np }, (_, i) => { const gs = shotG.filter(g => g.sp[i]); return [mean(gs.map(g => g.sp[i][0])), mean(gs.map(g => g.sp[i][1]))]; });
-  const svg = chartCard("Shots by period", `Average per game over ${nShots} games.`, [["Ours", "var(--s-for)"], ["Theirs", "var(--s-against)"]]);
+  const svg = chartCard("Shots by period", [["Ours", "var(--s-for)"], ["Theirs", "var(--s-against)"]]);
   const top = Math.max(10, Math.ceil(Math.max(...per.flat()) / 5) * 5);
   const Y = v => CH - M.b - v / top * (CH - M.t - M.b);
   const ticks = []; for (let v = 0; v <= top; v += 5) ticks.push(v);
@@ -347,20 +344,20 @@ if (nShots) (() => {
   });
 })();
 lineChart({
-  title: "Time in offence and defence", cap: "Share of live play near their net and near ours; the rest is the middle of the ice.",
+  title: "Time in offence and defence",
   series: [{ name: "Offence", color: "var(--s-for)", get: g => g.offence, endLabel: true }, { name: "Defence", color: "var(--s-against)", get: g => g.defence, endLabel: true }],
   lo: .1, hi: .6, ticks: [.1, .2, .3, .4, .5, .6], fmtTick: v => pct(v), fmtVal: v => pct(v),
   legend: [["Offence", "var(--s-for)", "line"], ["Defence", "var(--s-against)", "line"]],
   extra: g => g.offence == null ? [] : [{ v: pct(1 - g.offence - g.defence), k: "middle of the ice" }, { v: g.rink, k: "rink" }],
 });
 lineChart({
-  title: "Average shift", cap: "Team average shift length per game.",
+  title: "Average shift",
   series: [{ name: "Average shift", color: "var(--s-for)", get: g => g.avg_shift, endLabel: true }],
   lo: 90, hi: 150, ticks: [90, 105, 120, 135, 150], fmtTick: v => mmss(v), fmtVal: v => mmss(v),
   extra: g => [{ v: String(g.skaters), k: "skaters dressed" }],
 });
 lineChart({
-  title: "Penalties taken", cap: "Our minors per game; the tooltip shows goals against on the kill.",
+  title: "Penalties taken",
   series: [{ name: "Penalties", color: "var(--s-against)", get: g => g.penalties, endLabel: true }],
   lo: 0, hi: 4, ticks: [0, 1, 2, 3, 4], fmtTick: v => String(v), fmtVal: v => String(v),
   extra: g => [{ v: String(g.pk_ga), k: "goals against on the kill" }, { v: g.pk_min.toFixed(1) + " min", k: "short-handed" }],

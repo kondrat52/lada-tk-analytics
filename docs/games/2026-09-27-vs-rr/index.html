@@ -69,7 +69,6 @@ tbody tr { cursor: pointer; }
 .seg button:focus-visible { outline: 2px solid var(--blueline); outline-offset: -2px; }
 th.grp { text-align: center; border-left: 1px solid var(--rule); cursor: default; }
 td.gs, th.gs { border-left: 1px solid var(--rule); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 14px; }
 .tl { overflow-x: auto; background: var(--board); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 6px 6px; }
 svg text { fill: var(--ink); font-family: var(--data); }
 svg .mut { fill: var(--muted); }
@@ -115,7 +114,7 @@ a { color: var(--blueline); }
   <header>
     <div class="eyebrow"><a href="../../">All games</a> · Sun Sep 27, 2026 · 7:50 PM · Renton</div>
     <h1><span class="team">LADA Turbo Kings</span> vs Roadrunners</h1>
-    <p class="sub">Shift sheet: time on ice for every LADA Turbo Kings skater, measured from the <a href="https://youtu.be/57GWYeBUi2M" target="_blank" rel="noopener">wide-cut game video</a>. Click a column to sort, click a player to highlight his shifts, and click any shift in the timeline to open the video at that moment.</p>
+    <p class="sub">Shift sheet: time on ice for every LADA Turbo Kings skater, measured from the <a href="https://youtu.be/57GWYeBUi2M" target="_blank" rel="noopener">wide-cut game video</a>.</p>
   </header>
 
   <div class="facts" id="facts"></div>
@@ -129,7 +128,6 @@ a { color: var(--blueline); }
       </div>
     </div>
     <div class="tablebox"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-    <div class="legend" id="legend"></div>
   </section>
 
   <section id="hlsec">
@@ -146,7 +144,6 @@ a { color: var(--blueline); }
   <section>
     <h2>Shift timeline</h2>
     <div class="tl"><svg id="tl" role="img" aria-label="Shift timeline by player and period"></svg></div>
-    <div class="legend" id="tlnote"></div>
   </section>
 
 </div>
@@ -206,7 +203,7 @@ document.getElementById("facts").innerHTML = [
   const who = n => `<b class="n">#${n}</b> ${name(n)}`;
   const cards = [];
   const list = rows => `<ul>${rows.map(([a, b]) => `<li><span>${a}</span><span>${b}</span></li>`).join("")}</ul>`;
-  if (F.pairs && F.pairs.length) cards.push(`<h3>Best duos</h3>${list(F.pairs.map(p => [`${who(p.a)} + ${who(p.b)}`, fmt(p.sec)]))}<p>Time on the ice together.</p>`);
+  if (F.pairs && F.pairs.length) cards.push(`<h3>Best duos</h3>${list(F.pairs.map(p => [`${who(p.a)} + ${who(p.b)}`, fmt(p.sec)]))}`);
   if (F.unit) cards.push(`<h3>Most-used five</h3>${list(F.unit.players.map(n => [who(n), ""]))}<p>Together for ${fmt(F.unit.sec)} of the game.</p>`);
   if (F.periods) {
     const mx = Math.max(...F.periods.map(p => p.avg));
@@ -250,11 +247,6 @@ const COLS = {
     { k: `p${i}a`, l: "Avg shift", f: p => t_(p.per[i] && p.per[i][2]) },
   ]),
 };
-const LEGEND = {
-  game: ["Ice time runs from stepping on to stepping off, stoppages included."].concat(hasPlay ?
-    ["Play time counts only live play: stoppages are estimated from the video (players stop and line up for a faceoff), so quick whistles can slip through."] : []),
-  period: ["Shifts, ice time and average shift length in each period."],
-};
 function val(p, k) {
   const m = /^p(\d)([nta])$/.exec(k);
   if (m) { const x = p.per[+m[1]]; return x ? x["nta".indexOf(m[2])] : -1; }
@@ -273,7 +265,6 @@ function renderHead() {
     th.addEventListener("click", go);
     th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
   });
-  document.getElementById("legend").innerHTML = LEGEND[view].map(s => `<span>${s}</span>`).join("");
 }
 function renderTable() {
   const rows = [...DATA.players].sort((a, b) => {
@@ -335,7 +326,6 @@ DATA.shifts.forEach(s => {
   g += `<a href="${at(Math.round(s.t0) - 3)}" target="_blank" rel="noopener"><rect class="bar" tabindex="0" data-n="${s.player}" data-tip="#${s.player} ${s.period} ${fmt(s.t0 - per.start)}–${fmt(s.t1 - per.start)} (${fmt(s.t1 - s.t0)})" x="${x.toFixed(1)}" y="${TOP + r * LANE + 3}" width="${w.toFixed(1)}" height="${LANE - 7}" rx="2"/></a>`;
 });
 svg.innerHTML = g;
-if ((DATA.stoppages || []).length) document.getElementById("tlnote").innerHTML = "<span>Shaded bands: stoppages (estimated from the video).</span>";
 function highlight() {
   svg.classList.toggle("dim", selected !== null);
   svg.querySelectorAll(".bar").forEach(b => b.classList.toggle("hi", +b.dataset.n === selected));
@@ -344,7 +334,7 @@ const tip = document.getElementById("tip");
 svg.addEventListener("mousemove", e => {
   const b = e.target.closest(".bar");
   if (!b) { tip.hidden = true; return; }
-  tip.textContent = b.dataset.tip + " · opens video"; tip.hidden = false;
+  tip.textContent = b.dataset.tip; tip.hidden = false;
   tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px";
 });
 svg.addEventListener("mouseleave", () => tip.hidden = true);
