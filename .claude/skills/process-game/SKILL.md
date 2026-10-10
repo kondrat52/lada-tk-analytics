@@ -23,7 +23,8 @@ fair amount of tokens for the visual review. Keep the user posted with one line 
   if unsure.
 - New players, and for each whether they're on the team or a sub (they go in different parts of `roster.json`,
   step 4). The same game record has `lines`: the planned lines as LADA player ids. An id that isn't in
-  `lada_player_ids` is a new player worth asking about, but the lines aren't attendance (a listed sub may not come).
+  `lada_player_ids` is a new player worth asking about, but the lines aren't attendance (a listed sub may not come)
+  and never say whose id it is: ids come only from `pipeline/lada_ids.py`.
 - The final score, and roughly when goals were scored if they remember. It makes the goal check in step 7 quick.
 
 Don't ask about penalties: find them from the video (step 3) and report what you found.
@@ -298,8 +299,9 @@ the LADA app uses to link the game) from LADA's public "last game" call. If it l
 games and their ids: `.../api/v1/team/24/game/next/30`). Add it, and the opponent's full name if you know it, as
 `"lada_game_id"` / `"opponent_name"` in `game.json`, then re-run `$PY pipeline/build_site.py`. A new opponent's
 code and full name go in `opponents.json` (the user's spelling wins over LADA's; LADA's exact spelling is what
-finds the team's logo in the LADA app, so a different one shows initials there). For a new player, also add their
-LADA player id to `lada_player_ids` in `roster.json` if the user knows it. Write `notes` in `game.json` (they
+finds the team's logo in the LADA app, so a different one shows initials there). For a new player, ask the user to
+run `$PY pipeline/lada_ids.py` in their own terminal (it signs in to LADA as them) and add the ids it marks NEW to
+`lada_player_ids` in `roster.json`; fix any it marks WRONG. A sub who isn't on the LADA roster gets no id. Write `notes` in `game.json` (they
 survive a republish): the rink if it's new, who sat and when, where the goal times came from, the subs, and
 anything you labeled by hand or read differently from the scoreboard.
 The clips live in `docs/games/<id>/clips/` (about 5 MB each), served by GitHub Pages. Open the page locally

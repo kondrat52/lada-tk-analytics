@@ -19,7 +19,7 @@
   {
    "number": 13,
    "name": "Belousenko",
-   "lada_player_id": null
+   "lada_player_id": 20412
   },
   {
    "number": 14,
@@ -44,7 +44,7 @@
   {
    "number": 33,
    "name": "Nizamutdinov",
-   "lada_player_id": null
+   "lada_player_id": 20394
   },
   {
    "number": 49,
@@ -64,7 +64,7 @@
   {
    "number": 74,
    "name": "Bronnikov",
-   "lada_player_id": null
+   "lada_player_id": 20411
   },
   {
    "number": 78,
@@ -91,7 +91,7 @@
   {
    "number": 69,
    "name": "Kleiman",
-   "lada_player_id": 20394,
+   "lada_player_id": null,
    "sub": true
   }
  ],

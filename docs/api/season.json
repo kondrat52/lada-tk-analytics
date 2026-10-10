@@ -16,7 +16,7 @@
   {
    "number": 13,
    "name": "Belousenko",
-   "lada_player_id": null,
+   "lada_player_id": 20412,
    "games_played": 3,
    "shifts": 39,
    "toi": 6122,
@@ -67,7 +67,7 @@
   {
    "number": 69,
    "name": "Kleiman",
-   "lada_player_id": 20394,
+   "lada_player_id": null,
    "sub": true,
    "games_played": 1,
    "shifts": 18,
@@ -95,7 +95,7 @@
   {
    "number": 74,
    "name": "Bronnikov",
-   "lada_player_id": null,
+   "lada_player_id": 20411,
    "games_played": 3,
    "shifts": 41,
    "toi": 5644,
@@ -452,7 +452,7 @@
   {
    "number": 33,
    "name": "Nizamutdinov",
-   "lada_player_id": null,
+   "lada_player_id": 20394,
    "games_played": 2,
    "shifts": 28,
    "toi": 3097,
