@@ -1,0 +1,44 @@
+name: Mirror
+# Every hour, copy the feeds from kondrat52.github.io/lada-analytics/ to this repo's Pages site
+# (the old address), and deploy it when they changed (always on a push or a run by hand).
+on:
+  schedule:
+    - cron: "17 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.copy.outputs.changed == 'true' || github.event_name != 'schedule' }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: copy
+        run: ./mirror.sh _site
+      - if: steps.copy.outputs.changed == 'true' || github.event_name != 'schedule'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: copy
+    if: needs.copy.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

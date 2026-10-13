@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>LADA Shift Sheets moved</title>
+<script>
+// /lada-tk-analytics/bw/... -> /lada-analytics/bw/...; everything else was Turbo Kings' -> /lada-analytics/tk/...
+var p = location.pathname.replace(/^\/lada-tk-analytics\/?/, "");
+location.replace("/lada-analytics/" + (/^bw(\/|$)/.test(p) ? p : "tk/" + p) + location.search + location.hash);
+</script></head>
+<body><p>The shift sheets moved to <a href="https://kondrat52.github.io/lada-analytics/">kondrat52.github.io/lada-analytics</a>.</p></body></html>
